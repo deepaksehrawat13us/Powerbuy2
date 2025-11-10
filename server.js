@@ -1,4 +1,5 @@
 // server.js  — Powerbuy2 backend (CommonJS, works on Windows)
+console.log("🚀  Running backend from:", __filename);
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -74,7 +75,9 @@ app.get("/api/signups", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
+app.get("/check", (req, res) => {
+    res.send("✅ Backend responding correctly");
+  });
 // ✅ Start the server
 const PORT = 5000;
 app.listen(PORT, () => {
