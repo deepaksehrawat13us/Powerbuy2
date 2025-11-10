@@ -63,40 +63,49 @@
     document.getElementById("year").textContent = new Date().getFullYear();
     const form = document.getElementById("signupForm");
     const msg = document.getElementById("msg");
-
+  
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
+  
       const phone = document.getElementById("phone").value.trim();
       const confirmPhone = document.getElementById("confirmPhone").value.trim();
-
+  
       if (phone !== confirmPhone) {
         msg.textContent = "❌ Phone numbers do not match.";
         msg.classList.remove("hidden", "text-green-600");
         msg.classList.add("text-red-600");
         return;
       }
-
+  
       msg.textContent = "Submitting...";
       msg.classList.remove("hidden", "text-red-600");
       msg.classList.add("text-gray-600");
-
-      // 🪵 Debug log before the request
+  
       const formData = Object.fromEntries(new FormData(form));
-      console.log("Submitting signup:", formData);
-
+  
       try {
-        // ✅ Correct API endpoint (not signup.html)
         const res = await fetch("/api/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         });
-
+  
         if (res.ok) {
-          msg.textContent = "✅ Signed up successfully!";
+          const data = await res.json();
+          // ✅ Store the user info locally to mark them as signed in
+          localStorage.setItem("powerbuyUser", JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+          }));
+  
+          // Redirect to homepage after a short delay
+          msg.textContent = "✅ Signed up successfully! Redirecting...";
           msg.classList.replace("text-gray-600", "text-green-600");
-          form.reset();
+  
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1500);
         } else {
           msg.textContent = "❌ Error: Unable to sign up.";
           msg.classList.replace("text-gray-600", "text-red-600");

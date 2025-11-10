@@ -8,23 +8,48 @@
   <!-- Tailwind CSS (CDN) for instant responsiveness -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style> body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; } </style>
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  </style>
 </head>
+
 <body class="bg-white text-gray-900">
   <!-- NAV -->
   <header class="border-b p-4 flex items-center justify-between">
     <div class="text-2xl font-bold">PowerBuy</div>
-    <nav class="hidden md:flex gap-6">
+
+    <!-- DESKTOP NAV -->
+    <nav class="hidden md:flex gap-6 items-center">
       <a href="#how" class="hover:opacity-70">How it works</a>
       <a href="#pools" class="hover:opacity-70">Active Powerbuys</a>
-      <a href="signup.html" class="hover:opacity-70">Sign up</a>
+      <a href="signup.html" id="signupLink" class="hover:opacity-70">Sign up</a>
+
+      <!-- 👇 Welcome + Logout placeholders -->
+      <span id="welcomeUser" class="text-sm font-medium text-gray-700 ml-4 hidden"></span>
+      <button id="logoutBtn"
+              onclick="logout()"
+              class="text-sm text-gray-500 underline ml-4 hidden">
+        Logout
+      </button>
     </nav>
+
+    <!-- MOBILE MENU BUTTON -->
     <button id="menuBtn" class="md:hidden border rounded-lg px-3 py-2">Menu</button>
   </header>
+
+  <!-- MOBILE MENU -->
   <div id="mobileMenu" class="md:hidden hidden border-b p-3 space-y-2">
     <a href="#how" class="block">How it works</a>
     <a href="#pools" class="block">Active Powerbuys</a>
-    <a href="#signup" class="block">Sign up</a>
+    <a href="signup.html" id="mobileSignup" class="block">Sign up</a>
+
+    <!-- 👇 Mobile welcome + logout -->
+    <span id="mobileWelcome" class="text-sm font-medium text-gray-700 hidden"></span>
+    <button id="mobileLogout"
+            onclick="logout()"
+            class="text-sm text-gray-500 underline hidden">
+      Logout
+    </button>
   </div>
 
   <!-- HERO -->
@@ -38,9 +63,10 @@
       </p>
       <div class="mt-6 flex flex-col sm:flex-row gap-3">
         <a href="powerbuys.html" class="inline-flex items-center justify-center rounded-xl bg-black text-white px-5 py-3 font-semibold">Explore Powerbuys</a>
-        <a href="#signup" class="inline-flex items-center justify-center rounded-xl border px-5 py-3 font-semibold">Sign up</a>
+        <a href="signup.html" id="heroSignup" class="inline-flex items-center justify-center rounded-xl border px-5 py-3 font-semibold">Sign up</a>
       </div>
     </div>
+
     <!-- 3x3 responsive placeholders -->
     <div class="aspect-video rounded-2xl border p-3">
       <div class="grid grid-cols-3 gap-2 h-full">
@@ -77,12 +103,47 @@
     © <span id="year"></span> PowerBuy. All rights reserved.
   </footer>
 
+  <!-- SCRIPTS -->
   <script>
-    // mobile menu
+    // Mobile menu toggle
     const btn = document.getElementById("menuBtn");
     const mm = document.getElementById("mobileMenu");
     btn?.addEventListener("click", () => mm.classList.toggle("hidden"));
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // ✅ Check if user is signed in
+    const user = JSON.parse(localStorage.getItem("powerbuyUser"));
+    const welcomeUser = document.getElementById("welcomeUser");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const signupLinks = [
+      document.getElementById("signupLink"),
+      document.getElementById("mobileSignup"),
+      document.getElementById("heroSignup")
+    ];
+
+    const mobileWelcome = document.getElementById("mobileWelcome");
+    const mobileLogout = document.getElementById("mobileLogout");
+
+    if (user) {
+      // Desktop header
+      welcomeUser.textContent = `👋 Welcome, ${user.name}`;
+      welcomeUser.classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+
+      // Mobile header
+      mobileWelcome.textContent = `👋 Welcome, ${user.name}`;
+      mobileWelcome.classList.remove("hidden");
+      mobileLogout.classList.remove("hidden");
+
+      // Hide all Sign Up links/buttons
+      signupLinks.forEach(el => el && (el.style.display = "none"));
+    }
+
+    // ✅ Logout function
+    function logout() {
+      localStorage.removeItem("powerbuyUser");
+      window.location.reload();
+    }
   </script>
 </body>
 </html>
