@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Active PowerBuys | PowerBuy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!-- NAVBAR -->
+  <header class="sticky top-0 bg-white border-b shadow-sm z-10">
+    <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+      <a href="index.html" class="text-2xl font-bold text-black">PowerBuy</a>
+      <nav class="hidden md:flex space-x-6 text-sm font-semibold">
+        <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
+        <a href="powerbuys.html" class="text-indigo-600 font-bold">PowerBuys</a>
+        <a href="index.html#signup" class="hover:text-gray-500">Sign Up</a>
+      </nav>
+      <button id="menuBtn" class="md:hidden border px-3 py-2 rounded-lg">☰</button>
+    </div>
+    <div id="mobileMenu" class="hidden md:hidden border-t">
+      <a href="index.html#how" class="block px-4 py-2 hover:bg-gray-100">How it Works</a>
+      <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">PowerBuys</a>
+      <a href="index.html#signup" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
+    </div>
+  </header>
+
+  <!-- PAGE HEADING -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h2 class="text-3xl font-extrabold text-center">Active PowerBuys</h2>
+    <p class="text-gray-600 text-center mt-2">Search and join the group that matches your brand or product interest.</p>
+
+    <!-- Filters -->
+    <div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <input id="searchInput" type="text" placeholder="Search by brand name..." class="w-full md:w-1/2 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none" />
+
+      <select id="categoryFilter" class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+        <option value="all">All Categories</option>
+        <option value="car">Cars</option>
+        <option value="phone">Phones</option>
+      </select>
+    </div>
+
+    <!-- PowerBuys List -->
+    <div id="powerbuyList" class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </section>
+
+  <footer class="py-6 text-center text-sm text-gray-500 border-t mt-10">
+    © <span id="year"></span> PowerBuy. All Rights Reserved.
+  </footer>
+
+  <script>
+    const menuBtn = document.getElementById("menuBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+    menuBtn?.addEventListener("click", () => mobileMenu.classList.toggle("hidden"));
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Sample PowerBuys (later from backend)
+    const powerbuys = [
+      { brand: "Nissan", type: "car", joinBy: "Nov 30, 2025", participants: 14 },
+      { brand: "Apple", type: "phone", joinBy: "Nov 25, 2025", participants: 28 },
+      { brand: "Samsung", type: "phone", joinBy: "Dec 5, 2025", participants: 19 },
+      { brand: "Toyota", type: "car", joinBy: "Dec 10, 2025", participants: 9 },
+      { brand: "OnePlus", type: "phone", joinBy: "Nov 28, 2025", participants: 22 },
+      { brand: "Hyundai", type: "car", joinBy: "Dec 3, 2025", participants: 11 }
+    ];
+
+    const listContainer = document.getElementById("powerbuyList");
+    const searchInput = document.getElementById("searchInput");
+    const categoryFilter = document.getElementById("categoryFilter");
+
+    function renderList() {
+      const search = searchInput.value.toLowerCase();
+      const category = categoryFilter.value;
+
+      const filtered = powerbuys.filter(pb => {
+        const matchesSearch = pb.brand.toLowerCase().includes(search);
+        const matchesCategory = category === "all" || pb.type === category;
+        return matchesSearch && matchesCategory;
+      });
+
+      listContainer.innerHTML = filtered.map(pb => `
+        <div class="bg-white rounded-2xl border shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <h3 class="text-xl font-semibold">${pb.brand}</h3>
+            <p class="text-gray-600 mt-1 capitalize">Category: ${pb.type}</p>
+            <p class="text-gray-600 mt-1">Join by: <strong>${pb.joinBy}</strong></p>
+            <p class="text-gray-600 mt-1">Participants: <strong>${pb.participants}</strong></p>
+          </div>
+          <button class="mt-5 bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800">
+            Join PowerBuy
+          </button>
+        </div>
+      `).join("");
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `<p class="text-gray-500 text-center col-span-full">No PowerBuys found for your search.</p>`;
+      }
+    }
+
+    searchInput.addEventListener("input", renderList);
+    categoryFilter.addEventListener("change", renderList);
+    renderList();
+  </script>
+</body>
+</html>
