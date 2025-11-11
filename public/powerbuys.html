@@ -5,39 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Active PowerBuys | PowerBuy</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <style> body { font-family: 'Inter', sans-serif; } </style>
+  <style> body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; } </style>
 </head>
 
 <body class="bg-gray-50 text-gray-900">
 
-  <!-- NAVBAR -->
+  <!-- UNIVERSAL HEADER -->
   <header class="sticky top-0 bg-white border-b shadow-sm z-10">
     <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
       <a href="index.html" class="text-2xl font-bold text-black">PowerBuy</a>
-      <nav class="hidden md:flex space-x-6 text-sm font-semibold">
+      <nav class="hidden md:flex space-x-6 text-sm font-semibold items-center">
         <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
         <a href="powerbuys.html" class="text-indigo-600 font-bold">PowerBuys</a>
-        <a href="index.html#signup" class="hover:text-gray-500">Sign Up</a>
+        <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
+        <a href="signin.html" class="hover:text-gray-500">Sign In</a>
+        <a href="signup.html" class="hover:text-gray-500">Sign Up</a>
       </nav>
-      <button id="menuBtn" class="md:hidden border px-3 py-2 rounded-lg">☰</button>
+      <button id="menuBtn" class="md:hidden border px-3 py-2 rounded-lg text-sm">☰</button>
     </div>
-    <div id="mobileMenu" class="hidden md:hidden border-t">
+    <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
       <a href="index.html#how" class="block px-4 py-2 hover:bg-gray-100">How it Works</a>
-      <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">PowerBuys</a>
-      <a href="index.html#signup" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
+      <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100 font-bold text-indigo-600">PowerBuys</a>
+      <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My PowerBuys</a>
+      <a href="signin.html" class="block px-4 py-2 hover:bg-gray-100">Sign In</a>
+      <a href="signup.html" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
     </div>
   </header>
 
-  <!-- PAGE HEADING -->
+  <!-- MAIN SECTION -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <h2 class="text-3xl font-extrabold text-center">Active PowerBuys</h2>
     <p class="text-gray-600 text-center mt-2">Search and join the group that matches your brand or product interest.</p>
 
     <!-- Filters -->
     <div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-      <input id="searchInput" type="text" placeholder="Search by brand name..." class="w-full md:w-1/2 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none" />
-
+      <input id="searchInput" type="text" placeholder="Search by brand name..."
+             class="w-full md:w-1/2 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none" />
       <select id="categoryFilter" class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
         <option value="all">All Categories</option>
         <option value="car">Cars</option>
@@ -45,21 +48,55 @@
       </select>
     </div>
 
-    <!-- PowerBuys List -->
-    <div id="powerbuyList" class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <!-- PowerBuys Grid -->
+    <div id="powerbuyList" class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 text-center"></div>
   </section>
 
+  <!-- JOIN FORM MODAL -->
+  <div id="joinModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+      <h3 class="text-2xl font-bold mb-4 text-center">Join PowerBuy</h3>
+      <form id="joinForm" class="space-y-4">
+        <input type="hidden" id="joinBrand" name="brand" />
+        <input type="hidden" id="joinType" name="type" />
+
+        <!-- Dynamic specs fields -->
+        <div id="dynamicSpecs"></div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Additional Notes (Optional)</label>
+          <textarea id="notes" name="notes" rows="3"
+                    class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    placeholder="Any preferences, color, variant, etc."></textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-4">
+          <button type="button" id="cancelJoin"
+                  class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800">
+            Join Now
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
   <footer class="py-6 text-center text-sm text-gray-500 border-t mt-10">
     © <span id="year"></span> PowerBuy. All Rights Reserved.
   </footer>
 
+  <!-- SCRIPT -->
   <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
     const menuBtn = document.getElementById("menuBtn");
     const mobileMenu = document.getElementById("mobileMenu");
     menuBtn?.addEventListener("click", () => mobileMenu.classList.toggle("hidden"));
-    document.getElementById("year").textContent = new Date().getFullYear();
 
-    // Sample PowerBuys (later from backend)
+    const user = JSON.parse(localStorage.getItem("powerbuyUser"));
     const powerbuys = [
       { brand: "Nissan", type: "car", joinBy: "Nov 30, 2025", participants: 14 },
       { brand: "Apple", type: "phone", joinBy: "Nov 25, 2025", participants: 28 },
@@ -72,16 +109,20 @@
     const listContainer = document.getElementById("powerbuyList");
     const searchInput = document.getElementById("searchInput");
     const categoryFilter = document.getElementById("categoryFilter");
+    const joinModal = document.getElementById("joinModal");
+    const joinForm = document.getElementById("joinForm");
+    const cancelJoin = document.getElementById("cancelJoin");
+    const joinBrand = document.getElementById("joinBrand");
+    const joinType = document.getElementById("joinType");
+    const dynamicSpecs = document.getElementById("dynamicSpecs");
 
     function renderList() {
       const search = searchInput.value.toLowerCase();
       const category = categoryFilter.value;
-
-      const filtered = powerbuys.filter(pb => {
-        const matchesSearch = pb.brand.toLowerCase().includes(search);
-        const matchesCategory = category === "all" || pb.type === category;
-        return matchesSearch && matchesCategory;
-      });
+      const filtered = powerbuys.filter(pb =>
+        pb.brand.toLowerCase().includes(search) &&
+        (category === "all" || pb.type === category)
+      );
 
       listContainer.innerHTML = filtered.map(pb => `
         <div class="bg-white rounded-2xl border shadow-sm p-6 flex flex-col justify-between">
@@ -91,21 +132,160 @@
             <p class="text-gray-600 mt-1">Join by: <strong>${pb.joinBy}</strong></p>
             <p class="text-gray-600 mt-1">Participants: <strong>${pb.participants}</strong></p>
           </div>
-          <button class="mt-5 bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800">
+          <button onclick="openJoinForm('${pb.brand}','${pb.type}')"
+            class="mt-5 bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800">
             Join PowerBuy
           </button>
         </div>
       `).join("");
 
-      if (filtered.length === 0) {
-        listContainer.innerHTML = `<p class="text-gray-500 text-center col-span-full">No PowerBuys found for your search.</p>`;
-      }
+      if (filtered.length === 0)
+        listContainer.innerHTML = `<p class="text-gray-500 text-center col-span-full">No PowerBuys found.</p>`;
     }
+
+    function openJoinForm(brand, type) {
+      if (!user) {
+        alert("Please sign up or sign in before joining a PowerBuy!");
+        window.location.href = "signin.html";
+        return;
+      }
+      joinBrand.value = brand;
+      joinType.value = type;
+
+      // dynamic fields
+      if (type === "phone") {
+        dynamicSpecs.innerHTML = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Model</label>
+            <select id="model" name="Model" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">Select Model</option>
+              <option>iPhone 15</option>
+              <option>iPhone 14</option>
+              <option>Samsung S24 Ultra</option>
+              <option>Samsung S23</option>
+              <option>OnePlus 12</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Storage</label>
+            <select id="storage" name="Storage" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">Select Storage</option>
+              <option>128GB</option>
+              <option>256GB</option>
+              <option>512GB</option>
+              <option>1TB</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Color</label>
+            <select id="color" name="Color" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">Select Color</option>
+              <option>Black</option>
+              <option>Silver</option>
+              <option>Blue</option>
+              <option>Red</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Carrier</label>
+            <select id="carrier" name="Carrier" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">Select Carrier</option>
+              <option>Unlocked</option>
+              <option>Verizon</option>
+              <option>AT&T</option>
+              <option>T-Mobile</option>
+            </select>
+          </div>`;
+      } else if (type === "car") {
+        dynamicSpecs.innerHTML = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Model</label>
+            <select id="model" name="Model" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">Select Model</option>
+              <option>Sentra</option>
+              <option>Altima</option>
+              <option>Rogue</option>
+              <option>Magnite</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Color</label>
+            <select id="color" name="Color" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">Select Color</option>
+              <option>Black</option>
+              <option>White</option>
+              <option>Silver</option>
+              <option>Blue</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Trim</label>
+            <select id="trim" name="Trim" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">Select Trim</option>
+              <option>Base</option>
+              <option>Sport</option>
+              <option>Luxury</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Transmission</label>
+            <select id="transmission" name="Transmission" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">Select Transmission</option>
+              <option>Automatic</option>
+              <option>Manual</option>
+            </select>
+          </div>`;
+      }
+
+      joinModal.classList.remove("hidden");
+      joinModal.classList.add("flex");
+    }
+
+    cancelJoin.addEventListener("click", () => {
+      joinModal.classList.add("hidden");
+      joinModal.classList.remove("flex");
+    });
+
+    joinForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const specs = {};
+      document.querySelectorAll("#dynamicSpecs select").forEach(sel => specs[sel.name] = sel.value);
+
+      const formData = {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        brand: joinBrand.value,
+        type: joinType.value,
+        specs,
+        notes: document.getElementById("notes").value
+      };
+
+      try {
+        const res = await fetch("/api/join-powerbuy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(`✅ Joined ${formData.brand} PowerBuy successfully!`);
+          joinModal.classList.add("hidden");
+        } else {
+          alert(`❌ ${data.error || "Unable to join PowerBuy."}`);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network error. Try again later.");
+      }
+    });
 
     searchInput.addEventListener("input", renderList);
     categoryFilter.addEventListener("change", renderList);
     renderList();
   </script>
+
   <script src="session.js"></script>
 </body>
 </html>

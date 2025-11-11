@@ -1,0 +1,97 @@
+[
+  {
+    "user": {
+      "name": "Deepak Sehrawat",
+      "email": "deepak@gmail.com",
+      "phone": "6786877472"
+    },
+    "powerbuy": {
+      "brand": "Samsung",
+      "type": "phone"
+    },
+    "specs": {
+      "Model": "S24 Ultra",
+      "Storage": "256GB",
+      "Color": "Black",
+      "Carrier": "Unlocked"
+    },
+    "notes": "",
+    "timestamp": "2025-11-10T22:53:28.091Z"
+  },
+  {
+    "user": {
+      "name": "Deepak Sehrawat",
+      "email": "deepak@gmail.com",
+      "phone": "6786877472"
+    },
+    "powerbuy": {
+      "brand": "Hyundai",
+      "type": "car"
+    },
+    "specs": {
+      "Model": "Rogue",
+      "Color": "White",
+      "Trim": "Base",
+      "Transmission": "Manual"
+    },
+    "notes": "",
+    "timestamp": "2025-11-10T23:15:46.589Z"
+  },
+  {
+    "user": {
+      "name": "Deepak Sehrawat",
+      "email": "deepak12@gmail.com",
+      "phone": "1111111111"
+    },
+    "powerbuy": {
+      "brand": "Nissan",
+      "type": "car"
+    },
+    "specs": {
+      "Model": "Rogue",
+      "Color": "Black",
+      "Trim": "Sport",
+      "Transmission": "Manual"
+    },
+    "notes": "",
+    "joinedAt": "2025-11-11T00:43:19.366Z"
+  },
+  {
+    "user": {
+      "name": "Deepak Sehrawat",
+      "email": "deepak@gmail.com",
+      "phone": "6786877472"
+    },
+    "powerbuy": {
+      "brand": "Nissan",
+      "type": "car"
+    },
+    "specs": {
+      "Model": "Sentra",
+      "Color": "Silver",
+      "Trim": "Base",
+      "Transmission": "Automatic"
+    },
+    "notes": "",
+    "joinedAt": "2025-11-11T01:10:43.632Z"
+  },
+  {
+    "user": {
+      "name": "Deepak Sehrawat",
+      "email": "deepak@gmail.com",
+      "phone": "6786877472"
+    },
+    "powerbuy": {
+      "brand": "OnePlus",
+      "type": "phone"
+    },
+    "specs": {
+      "Model": "iPhone 14",
+      "Storage": "256GB",
+      "Color": "Silver",
+      "Carrier": "Verizon"
+    },
+    "notes": "",
+    "joinedAt": "2025-11-11T01:42:11.464Z"
+  }
+]

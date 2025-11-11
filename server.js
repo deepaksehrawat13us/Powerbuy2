@@ -1,5 +1,4 @@
-// server.js  — Powerbuy2 backend (CommonJS, works on Windows)
-console.log("🚀  Running backend from:", __filename);
+// server.js — Complete backend for Powerbuy2
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -9,78 +8,131 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Serve static files (index.html, signup.html, etc.) from /public
+// Serve static frontend
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Health check route
+// Health check
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, service: "powerbuy2", version: "0.1.0" });
+  res.json({ ok: true, service: "powerbuy2", version: "1.0.0" });
 });
 
-// ✅ POST /api/signup — save sign-up data locally
+// JSON file paths
+const signupsFile = path.join(__dirname, "signups.json");
+const joinsFile = path.join(__dirname, "joins.json");
+
+// =============== SIGNUP ROUTE ===============
 app.post("/api/signup", async (req, res) => {
   try {
-    console.log("✅ /api/signup route reached");
     const { name, email, phone, confirmPhone } = req.body;
-
-    // Basic validation
-    if (!name || !email || !phone) {
-      console.log("❌ Missing required fields");
+    if (!name || !email || !phone)
       return res.status(400).json({ error: "Missing required fields" });
-    }
-    if (phone !== confirmPhone) {
-      console.log("❌ Phone numbers do not match");
+    if (phone !== confirmPhone)
       return res.status(400).json({ error: "Phone numbers do not match" });
-    }
 
-    const newSignup = {
-      name,
-      email,
-      phone,
-      timestamp: new Date().toISOString(),
-    };
-
-    const filePath = path.join(__dirname, "signups.json");
     let signups = [];
-
-    if (await fs.pathExists(filePath)) {
-      const data = await fs.readFile(filePath, "utf8");
+    if (await fs.pathExists(signupsFile)) {
+      const data = await fs.readFile(signupsFile, "utf8");
       signups = JSON.parse(data || "[]");
     }
 
-    signups.push(newSignup);
-    await fs.writeFile(filePath, JSON.stringify(signups, null, 2));
+    // prevent duplicate users
+    const existing = signups.find(
+      (u) => u.email === email || u.phone === phone
+    );
+    if (existing)
+      return res.status(400).json({ error: "User already registered" });
 
-    console.log("✅ New signup saved:", newSignup);
+    const newUser = { name, email, phone, timestamp: new Date().toISOString() };
+    signups.push(newUser);
+    await fs.writeFile(signupsFile, JSON.stringify(signups, null, 2));
+
+    console.log(`✅ New signup: ${email}`);
     res.status(200).json({ success: true });
   } catch (err) {
-    console.error("❌ Error saving signup:", err);
+    console.error("❌ Error in signup:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// =============== JOIN POWERBUY ===============
+app.post("/api/join-powerbuy", async (req, res) => {
+  try {
+    const { name, email, phone, brand, type, specs, notes } = req.body;
+    if (!name || !email || !phone || !brand || !type)
+      return res.status(400).json({ error: "Missing required fields" });
+
+    let joins = [];
+    if (await fs.pathExists(joinsFile)) {
+      const data = await fs.readFile(joinsFile, "utf8");
+      joins = JSON.parse(data || "[]");
+    }
+
+    const duplicate = joins.find(
+      (j) => j.user.email === email && j.powerbuy.brand === brand && j.powerbuy.type === type
+    );
+    if (duplicate)
+      return res.status(400).json({ error: "You have already joined this PowerBuy" });
+
+    const newJoin = {
+      user: { name, email, phone },
+      powerbuy: { brand, type },
+      specs: specs || {},
+      notes: notes || "",
+      joinedAt: new Date().toISOString(),
+    };
+
+    joins.push(newJoin);
+    await fs.writeFile(joinsFile, JSON.stringify(joins, null, 2));
+    console.log(`✅ ${email} joined ${brand} (${type})`);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("❌ Join error:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// ✅ GET /api/signups — view all saved signups (for testing/admin)
-app.get("/api/signups", async (req, res) => {
+// =============== USER POWERBUYS ROUTES ===============
+app.get("/api/user-powerbuys", async (req, res) => {
   try {
-    const filePath = path.join(__dirname, "signups.json");
-    if (await fs.pathExists(filePath)) {
-      const data = await fs.readFile(filePath, "utf8");
-      const signups = JSON.parse(data || "[]");
-      res.status(200).json(signups);
+    if (await fs.pathExists(joinsFile)) {
+      const data = await fs.readFile(joinsFile, "utf8");
+      const joins = JSON.parse(data || "[]");
+      res.status(200).json(joins);
     } else {
       res.status(200).json([]);
     }
   } catch (err) {
-    console.error("❌ Error reading signups:", err);
+    console.error("❌ Error reading joins.json:", err);
+    res.status(500).json({ error: "Unable to load PowerBuys" });
+  }
+});
+
+app.post("/api/leave-powerbuy", async (req, res) => {
+  try {
+    const { email, brand, type } = req.body;
+    if (!email || !brand || !type)
+      return res.status(400).json({ error: "Missing required fields" });
+
+    if (!(await fs.pathExists(joinsFile)))
+      return res.status(404).json({ error: "No PowerBuys found" });
+
+    const data = await fs.readFile(joinsFile, "utf8");
+    let joins = JSON.parse(data || "[]");
+    const updated = joins.filter(
+      (j) => !(j.user.email === email && j.powerbuy.brand === brand && j.powerbuy.type === type)
+    );
+
+    await fs.writeFile(joinsFile, JSON.stringify(updated, null, 2));
+    console.log(`👋 ${email} left ${brand} (${type})`);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("❌ Leave error:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-app.get("/check", (req, res) => {
-    res.send("✅ Backend responding correctly");
-  });
-// ✅ Start the server
+
+// =============== START SERVER ===============
 const PORT = 5000;
 app.listen(PORT, () => {
-  console.log("🚀 Powerbuy2 backend running from:", __filename);
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Powerbuy2 backend running at http://localhost:${PORT}`);
 });

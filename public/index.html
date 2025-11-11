@@ -3,71 +3,49 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PowerBuy2</title>
-
-  <!-- Tailwind CSS (CDN) for instant responsiveness -->
+  <title>PowerBuy | Home</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-  </style>
+  <style> body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; } </style>
 </head>
 
 <body class="bg-white text-gray-900">
-  <!-- NAV -->
-  <header class="border-b p-4 flex items-center justify-between">
-    <div class="text-2xl font-bold">PowerBuy</div>
-
-    <!-- DESKTOP NAV -->
-    <nav class="hidden md:flex gap-6 items-center">
-      <a href="#how" class="hover:opacity-70">How it works</a>
-      <a href="#pools" class="hover:opacity-70">Active Powerbuys</a>
-      <a href="signup.html" id="signupLink" class="hover:opacity-70">Sign up</a>
-
-      <!-- 👇 Welcome + Logout placeholders -->
-      <span id="welcomeUser" class="text-sm font-medium text-gray-700 ml-4 hidden"></span>
-      <button id="logoutBtn"
-              onclick="logout()"
-              class="text-sm text-gray-500 underline ml-4 hidden">
-        Logout
-      </button>
-    </nav>
-
-    <!-- MOBILE MENU BUTTON -->
-    <button id="menuBtn" class="md:hidden border rounded-lg px-3 py-2">Menu</button>
+  <!-- UNIVERSAL HEADER -->
+  <header class="sticky top-0 bg-white border-b shadow-sm z-10">
+    <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+      <a href="index.html" class="text-2xl font-bold text-black">PowerBuy</a>
+      <nav class="hidden md:flex space-x-6 text-sm font-semibold items-center">
+        <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
+        <a href="powerbuys.html" class="hover:text-gray-500">PowerBuys</a>
+        <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
+        <a href="signin.html" class="hover:text-gray-500">Sign In</a>
+        <a href="signup.html" class="hover:text-gray-500">Sign Up</a>
+      </nav>
+      <button id="menuBtn" class="md:hidden border px-3 py-2 rounded-lg text-sm">☰</button>
+    </div>
+    <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
+      <a href="index.html#how" class="block px-4 py-2 hover:bg-gray-100">How it Works</a>
+      <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">PowerBuys</a>
+      <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My PowerBuys</a>
+      <a href="signin.html" class="block px-4 py-2 hover:bg-gray-100">Sign In</a>
+      <a href="signup.html" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
+    </div>
   </header>
-
-  <!-- MOBILE MENU -->
-  <div id="mobileMenu" class="md:hidden hidden border-b p-3 space-y-2">
-    <a href="#how" class="block">How it works</a>
-    <a href="#pools" class="block">Active Powerbuys</a>
-    <a href="signup.html" id="mobileSignup" class="block">Sign up</a>
-
-    <!-- 👇 Mobile welcome + logout -->
-    <span id="mobileWelcome" class="text-sm font-medium text-gray-700 hidden"></span>
-    <button id="mobileLogout"
-            onclick="logout()"
-            class="text-sm text-gray-500 underline hidden">
-      Logout
-    </button>
-  </div>
 
   <!-- HERO -->
   <section class="p-6 md:p-10 max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center">
     <div>
       <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">
-        Join a Powerbuy. <span class="text-gray-600">Buy together, save bigger.</span>
+        Join a PowerBuy. <span class="text-gray-600">Buy together, save bigger.</span>
       </h1>
       <p class="mt-4 text-gray-600">
         Pick your brand, join a group, and unlock bulk-buy discounts on cars & smartphones.
       </p>
       <div class="mt-6 flex flex-col sm:flex-row gap-3">
-        <a href="powerbuys.html" class="inline-flex items-center justify-center rounded-xl bg-black text-white px-5 py-3 font-semibold">Explore Powerbuys</a>
-        <a href="signup.html" id="heroSignup" class="inline-flex items-center justify-center rounded-xl border px-5 py-3 font-semibold">Sign up</a>
+        <a href="powerbuys.html" class="inline-flex items-center justify-center rounded-xl bg-black text-white px-5 py-3 font-semibold">Explore PowerBuys</a>
+        <a href="signup.html" class="inline-flex items-center justify-center rounded-xl border px-5 py-3 font-semibold">Sign Up</a>
       </div>
     </div>
-
-    <!-- 3x3 responsive placeholders -->
     <div class="aspect-video rounded-2xl border p-3">
       <div class="grid grid-cols-3 gap-2 h-full">
         <div class="bg-gray-100 rounded-lg"></div><div class="bg-gray-100 rounded-lg"></div><div class="bg-gray-100 rounded-lg"></div>
@@ -83,7 +61,7 @@
       <h2 class="text-2xl md:text-3xl font-bold">How it works (3 steps)</h2>
       <div class="mt-6 grid md:grid-cols-3 gap-6">
         <div class="rounded-2xl border p-6">
-          <h3 class="font-semibold text-lg">1) Join a Powerbuy</h3>
+          <h3 class="font-semibold text-lg">1) Join a PowerBuy</h3>
           <p class="text-gray-600 mt-2">Choose your brand (e.g., Apple, Samsung, Nissan).</p>
         </div>
         <div class="rounded-2xl border p-6">
@@ -98,52 +76,16 @@
     </div>
   </section>
 
-  <!-- FOOTER -->
   <footer class="p-6 text-center text-sm text-gray-600">
     © <span id="year"></span> PowerBuy. All rights reserved.
   </footer>
 
-  <!-- SCRIPTS -->
   <script>
-    // Mobile menu toggle
-    const btn = document.getElementById("menuBtn");
-    const mm = document.getElementById("mobileMenu");
-    btn?.addEventListener("click", () => mm.classList.toggle("hidden"));
     document.getElementById("year").textContent = new Date().getFullYear();
-
-    // ✅ Check if user is signed in
-    const user = JSON.parse(localStorage.getItem("powerbuyUser"));
-    const welcomeUser = document.getElementById("welcomeUser");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const signupLinks = [
-      document.getElementById("signupLink"),
-      document.getElementById("mobileSignup"),
-      document.getElementById("heroSignup")
-    ];
-
-    const mobileWelcome = document.getElementById("mobileWelcome");
-    const mobileLogout = document.getElementById("mobileLogout");
-
-    if (user) {
-      // Desktop header
-      welcomeUser.textContent = `👋 Welcome, ${user.name}`;
-      welcomeUser.classList.remove("hidden");
-      logoutBtn.classList.remove("hidden");
-
-      // Mobile header
-      mobileWelcome.textContent = `👋 Welcome, ${user.name}`;
-      mobileWelcome.classList.remove("hidden");
-      mobileLogout.classList.remove("hidden");
-
-      // Hide all Sign Up links/buttons
-      signupLinks.forEach(el => el && (el.style.display = "none"));
-    }
-
-    // ✅ Logout function
-    function logout() {
-      localStorage.removeItem("powerbuyUser");
-      window.location.reload();
-    }
+    const menuBtn = document.getElementById("menuBtn");
+    const mm = document.getElementById("mobileMenu");
+    menuBtn?.addEventListener("click", () => mm.classList.toggle("hidden"));
   </script>
+  <script src="session.js"></script>
 </body>
 </html>

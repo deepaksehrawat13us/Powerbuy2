@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign In | PowerBuy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style> body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; } </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!-- NAVBAR -->
+  <header class="sticky top-0 bg-white border-b shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+      <a href="index.html" class="text-2xl font-bold">PowerBuy</a>
+    </div>
+  </header>
+
+  <!-- SIGN IN FORM -->
+  <main class="max-w-md mx-auto mt-10 bg-white rounded-2xl shadow p-8">
+    <h2 class="text-3xl font-bold mb-4 text-center">Sign In</h2>
+    <p class="text-sm text-gray-600 text-center mb-6">
+      Welcome back! Enter your registered email and phone number to continue.
+    </p>
+
+    <form id="signinForm" class="space-y-4">
+      <input type="email" name="email" placeholder="Email Address" required
+             class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+
+      <input type="tel" name="phone" placeholder="Phone Number" required
+             pattern="[0-9]{10}" maxlength="10"
+             class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+
+      <button type="submit"
+              class="w-full bg-black text-white rounded-lg py-2 font-semibold hover:bg-gray-800 transition">
+        Sign In
+      </button>
+    </form>
+
+    <p id="msg" class="text-center mt-4 text-sm text-gray-600 hidden"></p>
+
+    <p class="text-sm text-center mt-6 text-gray-600">
+      Don’t have an account? <a href="signup.html" class="text-indigo-600 font-semibold hover:underline">Sign up</a>
+    </p>
+  </main>
+
+  <footer class="text-center py-6 text-sm text-gray-500">
+    © <span id="year"></span> PowerBuy. All Rights Reserved.
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const form = document.getElementById("signinForm");
+    const msg = document.getElementById("msg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.classList.remove("hidden");
+      msg.textContent = "Checking credentials...";
+
+      const formData = Object.fromEntries(new FormData(form));
+
+      try {
+        const res = await fetch("/api/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.user) {
+          msg.textContent = "✅ Signed in successfully!";
+          localStorage.setItem("powerbuyUser", JSON.stringify(data.user));
+          setTimeout(() => (window.location.href = "index.html"), 1000);
+        } else {
+          msg.textContent = "❌ No account found. Please check your details or sign up.";
+          msg.classList.replace("text-gray-600", "text-red-600");
+        }
+      } catch (err) {
+        msg.textContent = "❌ Network error. Try again later.";
+        msg.classList.replace("text-gray-600", "text-red-600");
+      }
+    });
+  </script>
+</body>
+</html>

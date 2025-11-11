@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sign In or Sign Up | PowerBuy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style> body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; } </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="sticky top-0 bg-white border-b shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+      <a href="index.html" class="text-2xl font-bold">PowerBuy</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto mt-10 grid gap-8 md:grid-cols-2 px-4">
+    <!-- Sign In -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Sign In</h2>
+      <form id="signinForm" class="space-y-3">
+        <input type="email" name="email" placeholder="Email" required class="w-full border rounded-lg px-3 py-2">
+        <input type="tel" name="phone" placeholder="Phone" required class="w-full border rounded-lg px-3 py-2">
+        <button class="w-full bg-black text-white rounded-lg py-2 font-semibold">Sign In</button>
+      </form>
+      <p id="signinMsg" class="text-sm mt-3 text-gray-600"></p>
+    </section>
+
+    <!-- Sign Up -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Sign Up</h2>
+      <form id="signupForm" class="space-y-3">
+        <input type="text" name="name" placeholder="Full Name" required class="w-full border rounded-lg px-3 py-2">
+        <input type="email" name="email" placeholder="Email Address" required class="w-full border rounded-lg px-3 py-2">
+        <input type="tel" name="phone" placeholder="Phone Number" required class="w-full border rounded-lg px-3 py-2">
+        <input type="tel" name="confirmPhone" placeholder="Confirm Phone Number" required class="w-full border rounded-lg px-3 py-2">
+        <button class="w-full bg-black text-white rounded-lg py-2 font-semibold">Create Account</button>
+      </form>
+      <p id="signupMsg" class="text-sm mt-3 text-gray-600"></p>
+      <p class="text-xs text-gray-500 mt-3">We only ask for your name, email, and phone number. No other data is collected or shared.</p>
+    </section>
+  </main>
+
+  <footer class="text-center py-6 text-sm text-gray-500">
+    © <span id="year"></span> PowerBuy. All Rights Reserved.
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get("redirect") || "index.html";
+
+    const signinForm = document.getElementById("signinForm");
+    const signupForm = document.getElementById("signupForm");
+    const signinMsg = document.getElementById("signinMsg");
+    const signupMsg = document.getElementById("signupMsg");
+
+    signinForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      signinMsg.textContent = "Signing in...";
+      const formData = Object.fromEntries(new FormData(signinForm));
+
+      try {
+        const res = await fetch("/api/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem("powerbuyUser", JSON.stringify(data.user));
+          window.location.href = redirectTo;
+        } else {
+          const err = await res.json().catch(() => ({}));
+          signinMsg.textContent = "❌ " + (err.error || "Unable to sign in.");
+          signinMsg.classList.add("text-red-600");
+        }
+      } catch {
+        signinMsg.textContent = "❌ Network error.";
+        signinMsg.classList.add("text-red-600");
+      }
+    });
+
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      signupMsg.textContent = "Creating account...";
+      const formData = Object.fromEntries(new FormData(signupForm));
+
+      if (formData.phone !== formData.confirmPhone) {
+        signupMsg.textContent = "❌ Phone numbers do not match.";
+        signupMsg.classList.add("text-red-600");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          // Store minimal user record locally
+          localStorage.setItem("powerbuyUser", JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone
+          }));
+          window.location.href = redirectTo;
+        } else {
+          const err = await res.json().catch(() => ({}));
+          signupMsg.textContent = "❌ " + (err.error || "Unable to sign up.");
+          signupMsg.classList.add("text-red-600");
+        }
+      } catch {
+        signupMsg.textContent = "❌ Network error.";
+        signupMsg.classList.add("text-red-600");
+      }
+    });
+  </script>
+
+  <script src="session.js"></script>
+</body>
+</html>

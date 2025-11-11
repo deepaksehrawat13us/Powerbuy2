@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Join PowerBuy | PowerBuy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style> body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; } </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="sticky top-0 bg-white border-b shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+      <a href="index.html" class="text-2xl font-bold">PowerBuy</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto mt-10 bg-white rounded-2xl shadow p-6">
+    <h1 class="text-2xl font-bold mb-2">Join PowerBuy</h1>
+    <p class="text-gray-600 mb-6">Tell us the exact product you want for this brand. Only the last field is free text.</p>
+
+    <div id="context" class="mb-6 p-4 border rounded-xl bg-gray-50"></div>
+
+    <form id="joinForm" class="space-y-4">
+      <div id="specFields" class="grid md:grid-cols-2 gap-4"></div>
+      <textarea name="notes" placeholder="Any additional information (optional)" class="w-full border rounded-lg px-3 py-2"></textarea>
+      <button class="w-full bg-black text-white rounded-lg py-2 font-semibold">Submit</button>
+    </form>
+
+    <p id="msg" class="text-sm mt-4 text-gray-700"></p>
+  </main>
+
+  <footer class="text-center py-6 text-sm text-gray-500">
+    © <span id="year"></span> PowerBuy. All Rights Reserved.
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const params = new URLSearchParams(window.location.search);
+    const brand = params.get("brand") || "";
+    const type  = params.get("type")  || "";
+
+    // Gate: must be signed in; otherwise go to auth with redirect back here
+    const user = JSON.parse(localStorage.getItem("powerbuyUser"));
+    if (!user) {
+      const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `auth.html?redirect=${redirect}`;
+    }
+
+    const context = document.getElementById("context");
+    context.innerHTML = `
+      <div class="flex flex-wrap gap-3 items-center">
+        <span class="px-3 py-1 rounded-full bg-black text-white text-sm font-semibold">${brand || "Brand"}</span>
+        <span class="px-3 py-1 rounded-full bg-gray-200 text-gray-800 text-sm">${(type || "category").toUpperCase()}</span>
+      </div>
+    `;
+
+    // Simple spec catalog (you can expand freely)
+    const catalog = {
+      car: {
+        Nissan: {
+          Model: ["Altima", "Rogue", "Sentra", "Kicks"],
+          Color: ["Black", "White", "Silver", "Blue"],
+          Trim: ["Base", "SV", "SL", "Platinum"],
+          Transmission: ["Automatic", "Manual"]
+        },
+        Toyota: {
+          Model: ["Corolla", "Camry", "RAV4", "Highlander"],
+          Color: ["Black", "White", "Silver", "Red"],
+          Trim: ["LE", "SE", "XLE", "XSE"],
+          Transmission: ["Automatic", "Manual"]
+        },
+        Hyundai: {
+          Model: ["Elantra", "Tucson", "Santa Fe", "Kona"],
+          Color: ["Black", "White", "Gray", "Blue"],
+          Trim: ["Essential", "Preferred", "Ultimate"],
+          Transmission: ["Automatic", "Manual"]
+        }
+      },
+      phone: {
+        Apple: {
+          Model: ["iPhone 15", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15 Pro Max"],
+          Storage: ["128GB", "256GB", "512GB", "1TB"],
+          Color: ["Black", "White", "Blue", "Natural Titanium"],
+          Carrier: ["Unlocked", "Bell", "Rogers", "Telus"]
+        },
+        Samsung: {
+          Model: ["Galaxy S24", "S24+", "S24 Ultra", "Z Flip 6"],
+          Storage: ["128GB", "256GB", "512GB"],
+          Color: ["Black", "Gray", "Violet", "Yellow"],
+          Carrier: ["Unlocked", "Bell", "Rogers", "Telus"]
+        },
+        OnePlus: {
+          Model: ["OnePlus 12", "OnePlus 12R", "Nord CE4"],
+          Storage: ["128GB", "256GB"],
+          Color: ["Black", "Green", "Blue"],
+          Carrier: ["Unlocked", "Bell", "Rogers", "Telus"]
+        }
+      }
+    };
+
+    const specFields = document.getElementById("specFields");
+
+    function buildSelect(label, options, name) {
+      const id = "field_" + name.replace(/\s+/g, "_").toLowerCase();
+      const opts = options.map(o => `<option value="${o}">${o}</option>`).join("");
+      return `
+        <label class="block">
+          <span class="text-sm font-semibold">${label}</span>
+          <select id="${id}" name="${name}" class="w-full border rounded-lg px-3 py-2 mt-1">${opts}</select>
+        </label>
+      `;
+    }
+
+    function renderSpecs() {
+      const branch = (catalog[type] && catalog[type][brand]) || null;
+      if (!branch) {
+        specFields.innerHTML = `
+          <p class="text-gray-600 col-span-full">
+            No preset specs for <strong>${brand || "-"}</strong> in <strong>${type || "-"}</strong>.
+            Please use the notes field to describe your product.
+          </p>`;
+        return;
+      }
+      const pieces = [];
+      Object.entries(branch).forEach(([label, options]) => {
+        pieces.push(buildSelect(label, options, label));
+      });
+      specFields.innerHTML = pieces.join("");
+    }
+    renderSpecs();
+
+    const form = document.getElementById("joinForm");
+    const msg = document.getElementById("msg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "Submitting...";
+      msg.className = "text-sm mt-4 text-gray-700";
+
+      const formData = Object.fromEntries(new FormData(form));
+      const specs = {};
+      // collect all selects we rendered
+      specFields.querySelectorAll("select").forEach(sel => {
+        const key = sel.name;
+        specs[key] = sel.value;
+      });
+
+      try {
+        const res = await fetch("/api/join-powerbuy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            brand,
+            type,
+            specs,
+            notes: formData.notes || ""
+          })
+        });
+        if (res.ok) {
+          msg.textContent = "✅ You’ve been added to this Powerbuy! We’ll notify you with the best deal.";
+          msg.className = "text-sm mt-4 text-green-600";
+          form.reset();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          msg.textContent = "❌ " + (err.error || "Unable to join right now.");
+          msg.className = "text-sm mt-4 text-red-600";
+        }
+      } catch {
+        msg.textContent = "❌ Network error.";
+        msg.className = "text-sm mt-4 text-red-600";
+      }
+    });
+  </script>
+
+  <script src="session.js"></script>
+</body>
+</html>
