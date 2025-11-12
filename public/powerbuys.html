@@ -14,7 +14,9 @@
   <header class="sticky top-0 bg-white border-b shadow-sm z-10">
     <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
       <a href="index.html" class="text-2xl font-bold text-black">PowerBuy</a>
-      <nav class="hidden md:flex space-x-6 text-sm font-semibold items-center">
+      
+      <!-- *** ID ADDED *** -->
+      <nav id="desktopNav" class="hidden md:flex space-x-6 text-sm font-semibold items-center">
         <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
         <a href="powerbuys.html" class="text-indigo-600 font-bold">PowerBuys</a>
         <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
@@ -23,6 +25,8 @@
       </nav>
       <button id="menuBtn" class="md:hidden border px-3 py-2 rounded-lg text-sm">☰</button>
     </div>
+    
+    <!-- *** ID ALREADY EXISTS *** -->
     <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
       <a href="index.html#how" class="block px-4 py-2 hover:bg-gray-100">How it Works</a>
       <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100 font-bold text-indigo-600">PowerBuys</a>
@@ -89,14 +93,27 @@
     © <span id="year"></span> PowerBuy. All Rights Reserved.
   </footer>
 
-  <!-- SCRIPT -->
+  <!-- 
+    *** SCRIPT SECTION UPDATED ***
+    1. session.js is loaded FIRST to make its functions available.
+    2. Main script is updated to use session.js functions.
+  -->
+  <script src="/session.js?v=1.2"></script>
+  
   <script>
+    // This script now runs *after* session.js has been loaded and executed
+    
+    // --- Page setup logic ---
     document.getElementById("year").textContent = new Date().getFullYear();
     const menuBtn = document.getElementById("menuBtn");
     const mobileMenu = document.getElementById("mobileMenu");
     menuBtn?.addEventListener("click", () => mobileMenu.classList.toggle("hidden"));
 
-    const user = JSON.parse(localStorage.getItem("powerbuyUser"));
+    // --- PowerBuys page-specific logic ---
+    
+    // Get user from session.js function
+    let user = getUserSession(); 
+
     const powerbuys = [
       { brand: "Nissan", type: "car", joinBy: "Nov 30, 2025", participants: 14 },
       { brand: "Apple", type: "phone", joinBy: "Nov 25, 2025", participants: 28 },
@@ -144,7 +161,9 @@
     }
 
     function openJoinForm(brand, type) {
-      if (!user) {
+      // *** UPDATED ***
+      // Use isLoggedIn() from session.js
+      if (!isLoggedIn()) { 
         alert("Please sign up or sign in before joining a PowerBuy!");
         window.location.href = "signin.html";
         return;
@@ -248,21 +267,30 @@
 
     joinForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const specs = {};
-      document.querySelectorAll("#dynamicSpecs select").forEach(sel => specs[sel.name] = sel.value);
+      
+      // *** UPDATED ***
+      // Get the fresh user data from session.js
+      const user = getUserSession();
+      if (!user) {
+        alert('Your session has expired. Please sign in to join.');
+        window.location.href = '/signin.html';
+        return;
+      }
 
+      // *** UPDATED ***
+      // Send the data the /join endpoint expects
       const formData = {
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
-        phone: user.phone,
-        brand: joinBrand.value,
-        type: joinType.value,
-        specs,
-        notes: document.getElementById("notes").value
+        powerbuyId: joinBrand.value // 'Nissan', 'Apple', etc.
+        // The server.js /join route doesn't use specs or notes,
+        // but we could add them later.
       };
 
       try {
-        const res = await fetch("/api/join-powerbuy", {
+        // *** UPDATED ***
+        // Changed endpoint from /api/join-powerbuy to /join
+        const res = await fetch("/join", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData)
@@ -270,10 +298,11 @@
         const data = await res.json();
 
         if (res.ok) {
-          alert(`✅ Joined ${formData.brand} PowerBuy successfully!`);
+          // *** UPDATED ***
+          alert(`✅ Joined ${formData.powerbuyId} PowerBuy successfully!`);
           joinModal.classList.add("hidden");
         } else {
-          alert(`❌ ${data.error || "Unable to join PowerBuy."}`);
+          alert(`❌ ${data.message || "Unable to join PowerBuy."}`);
         }
       } catch (err) {
         console.error(err);
@@ -283,9 +312,10 @@
 
     searchInput.addEventListener("input", renderList);
     categoryFilter.addEventListener("change", renderList);
+    
+    // Initial render
     renderList();
   </script>
 
-  <script src="session.js"></script>
 </body>
 </html>

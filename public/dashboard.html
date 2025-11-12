@@ -1,136 +1,251 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My PowerBuys | PowerBuy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - PowerBuy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    </style>
 </head>
+<body class="bg-gray-100 min-h-screen">
 
-<body class="bg-gray-50 text-gray-900">
-
-  <!-- HEADER -->
-  <header class="sticky top-0 bg-white border-b shadow-sm z-10">
-    <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
-      <a href="index.html" class="text-2xl font-bold text-black">PowerBuy</a>
-      <nav class="hidden md:flex space-x-6 text-sm font-semibold items-center">
-        <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
-        <a href="powerbuys.html" class="hover:text-gray-500">PowerBuys</a>
-        <a href="dashboard.html" class="text-indigo-600 font-bold">My PowerBuys</a>
-        <a href="signin.html" class="hover:text-gray-500">Sign In</a>
-        <a href="signup.html" class="hover:text-gray-500">Sign Up</a>
-      </nav>
-      <button id="menuBtn" class="md:hidden border px-3 py-2 rounded-lg text-sm">☰</button>
+    <!-- *** NEW *** Confirmation Modal for Leaving -->
+    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+            <h3 id="modalTitle" class="text-lg font-semibold mb-4">Are you sure?</h3>
+            <p id="modalMessage" class="text-sm text-gray-600 mb-6">Do you really want to leave this PowerBuy? This action cannot be undone.</p>
+            <div class="flex justify-end gap-3">
+                <button id="modalCancel" class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">
+                    Cancel
+                </button>
+                <button id="modalConfirm" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Confirm & Leave
+                </button>
+            </div>
+        </div>
     </div>
-    <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
-      <a href="index.html#how" class="block px-4 py-2 hover:bg-gray-100">How it Works</a>
-      <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">PowerBuys</a>
-      <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100 font-bold text-indigo-600">My PowerBuys</a>
-      <a href="signin.html" class="block px-4 py-2 hover:bg-gray-100">Sign In</a>
-      <a href="signup.html" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
-    </div>
-  </header>
 
-  <!-- MAIN CONTENT -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <h2 class="text-3xl font-extrabold text-center mb-6">My PowerBuys</h2>
-    <div id="dashboardContainer" class="text-center text-gray-500">Loading your PowerBuys...</div>
-  </section>
+    <!-- UNIVERSAL HEADER -->
+    <header class="sticky top-0 bg-white border-b shadow-sm z-10">
+        <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+            <a href="index.html" class="text-2xl font-bold text-black">PowerBuy</a>
+            
+            <nav id="desktopNav" class="hidden md:flex space-x-6 text-sm font-semibold items-center">
+                <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
+                <a href="powerbuys.html" class="hover:text-gray-500">PowerBuys</a>
+                <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
+                <a href="signin.html" class="hover:text-gray-500">Sign In</a>
+                <a href="signup.html" class="hover:text-gray-500">Sign Up</a>
+            </nav>
+            <button id="menuBtn" class="md:hidden border px-3 py-2 rounded-lg text-sm">☰</button>
+        </div>
+        
+        <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
+            <a href="index.html#how" class="block px-4 py-2 hover:bg-gray-100">How it Works</a>
+            <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">PowerBuys</a>
+            <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My PowerBuys</a>
+            <a href="signin.html" class="block px-4 py-2 hover:bg-gray-100">Sign In</a>
+            <a href="signup.html" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
+        </div>
+    </header>
 
-  <!-- FOOTER -->
-  <footer class="py-6 text-center text-sm text-gray-500 border-t mt-10">
-    © <span id="year"></span> PowerBuy. All Rights Reserved.
-  </footer>
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">My Dashboard</h1>
 
-  <!-- SCRIPT -->
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
+            <!-- User Info Section -->
+            <div id="userInfo" class="mb-8 p-6 border rounded-lg bg-gray-50">
+                <h2 class="text-2xl font-semibold mb-4">My Information</h2>
+                <div class="space-y-3">
+                    <p><strong>Full Name:</strong> <span id="dashFullName">Loading...</span></p>
+                    <p><strong>Email:</strong> <span id="dashEmail">Loading...</span></p>
+                    <p><strong>Phone:</strong> <span id="dashPhone">Loading...</span></p>
+                </div>
+            </div>
 
-    const menuBtn = document.getElementById("menuBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    menuBtn?.addEventListener("click", () => mobileMenu.classList.toggle("hidden"));
+            <!-- Joined PowerBuys Section -->
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">My Joined PowerBuys</h2>
+                <div id="joinedPowerBuysList" class="space-y-4">
+                    <!-- Loading state -->
+                    <p id="loadingMessage">Loading your PowerBuys...</p>
+                    <!-- No joins state -->
+                    <p id="noJoinsMessage" class="hidden text-gray-500">You haven't joined any PowerBuys yet.</p>
+                    <!-- List will be populated here -->
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- FOOTER -->
+    <footer class="p-6 text-center text-sm text-gray-600">
+        © <span id="year"></span> PowerBuy. All rights reserved.
+    </footer>
 
-    const user = JSON.parse(localStorage.getItem("powerbuyUser"));
-    const dashboardContainer = document.getElementById("dashboardContainer");
+    
+    <script src="/session.js?v=1.2"></script>
+    
+    <script>
+        // *** NEW *** Modal variables
+        const confirmationModal = document.getElementById('confirmationModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalConfirm = document.getElementById('modalConfirm');
+        
+        // Variables to store the context for the leave action
+        let powerBuyToLeave = null;
+        let powerBuyElementToRemove = null;
+        let currentUser = null; // Will be set on load
 
-    if (!user) {
-      dashboardContainer.innerHTML = `
-        <div class="bg-white rounded-xl shadow-sm p-6 max-w-md mx-auto">
-          <p class="text-gray-700 mb-4">Please sign in to view your PowerBuys.</p>
-          <a href="signin.html" class="bg-black text-white px-5 py-2 rounded-lg font-semibold hover:bg-gray-800">Sign In</a>
-        </div>`;
-    } else {
-      loadUserPowerBuys();
-    }
+        // *** NEW *** Function to open the confirmation modal
+        function openConfirmationModal(powerbuyId, buttonElement) {
+            powerBuyToLeave = powerbuyId;
+            // Get the parent div of the button to remove it on success
+            powerBuyElementToRemove = buttonElement.closest('.powerbuy-item'); 
+            
+            // Update modal text
+            modalTitle.textContent = `Leave ${powerbuyId} PowerBuy?`;
+            modalMessage.textContent = `Are you sure you want to leave the ${powerbuyId} PowerBuy? This action cannot be undone.`;
 
-    async function loadUserPowerBuys() {
-      try {
-        const res = await fetch("/api/user-powerbuys");
-        const data = await res.json();
-
-        const myPowerbuys = data.filter(join => join.user.email === user.email);
-
-        if (myPowerbuys.length === 0) {
-          dashboardContainer.innerHTML = `
-            <div class="bg-white rounded-xl shadow-sm p-6 max-w-md mx-auto">
-              <p class="text-gray-700 mb-4">You haven’t joined any PowerBuys yet.</p>
-              <a href="powerbuys.html" class="bg-black text-white px-5 py-2 rounded-lg font-semibold hover:bg-gray-800">Explore PowerBuys</a>
-            </div>`;
-          return;
+            // Show the modal
+            confirmationModal.classList.remove('hidden');
+            confirmationModal.classList.add('flex');
         }
 
-        dashboardContainer.innerHTML = `
-          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            ${myPowerbuys.map(join => `
-              <div class="bg-white rounded-xl border shadow-sm p-6 text-left">
-                <h3 class="text-xl font-bold mb-2">${join.powerbuy.brand}</h3>
-                <p class="text-gray-600 capitalize mb-2">Category: ${join.powerbuy.type}</p>
-                <div class="text-sm text-gray-700 space-y-1">
-                  ${Object.entries(join.specs || {}).map(([k, v]) => `<p><strong>${k}:</strong> ${v}</p>`).join("")}
-                </div>
-                ${join.notes ? `<p class="mt-2 text-sm text-gray-500">Note: ${join.notes}</p>` : ""}
-                <p class="mt-2 text-xs text-gray-400">Joined: ${new Date(join.timestamp || join.joinedAt).toLocaleString()}</p>
-                <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600"
-                        onclick="leavePowerbuy('${join.powerbuy.brand}','${join.powerbuy.type}')">
-                  Leave PowerBuy
-                </button>
-              </div>
-            `).join("")}
-          </div>`;
-      } catch (err) {
-        console.error("Error loading PowerBuys:", err);
-        dashboardContainer.innerHTML = `
-          <p class="text-red-600">Error loading your PowerBuys. Please try again later.</p>`;
-      }
-    }
-
-    async function leavePowerbuy(brand, type) {
-      if (!confirm(`Are you sure you want to leave the ${brand} ${type} PowerBuy?`)) return;
-
-      try {
-        const res = await fetch("/api/leave-powerbuy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: user.email, brand, type })
+        // *** NEW *** Event listener for modal cancel button
+        modalCancel.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+            confirmationModal.classList.remove('flex');
+            // Clear context
+            powerBuyToLeave = null;
+            powerBuyElementToRemove = null;
         });
 
-        const data = await res.json();
-        if (res.ok) {
-          alert("✅ You have left this PowerBuy.");
-          loadUserPowerBuys();
-        } else {
-          alert(`❌ ${data.error || "Unable to leave PowerBuy."}`);
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Network error. Try again later.");
-      }
-    }
-  </script>
+        // *** NEW *** Event listener for modal confirm button (handles the fetch)
+        modalConfirm.addEventListener('click', async () => {
+            if (!powerBuyToLeave || !powerBuyElementToRemove || !currentUser) {
+                console.error('Missing context for leave action.');
+                return;
+            }
 
-  <script src="session.js"></script>
+            try {
+                const response = await fetch('/leave-powerbuy', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: currentUser.email,
+                        powerbuyId: powerBuyToLeave
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Success: Remove the item from the list
+                    powerBuyElementToRemove.style.opacity = '0';
+                    setTimeout(() => {
+                        powerBuyElementToRemove.remove();
+                        // Check if list is now empty
+                        const listElement = document.getElementById('joinedPowerBuysList');
+                        if (listElement.children.length <= 2) { // Only loading/no-joins messages left
+                            document.getElementById('noJoinsMessage').classList.remove('hidden');
+                        }
+                    }, 300); // Wait for fade-out
+                } else {
+                    // Show error (you'd replace this with a better notification)
+                    console.error('Failed to leave:', result.message);
+                    alert(`Error: ${result.message}`); // Using alert as fallback
+                }
+
+            } catch (error) {
+                console.error('Network error while leaving:', error);
+                alert('Network error. Please try again.'); // Using alert as fallback
+            } finally {
+                // Hide and reset modal
+                modalCancel.click();
+            }
+        });
+
+
+        // Dashboard-specific logic
+        document.addEventListener('DOMContentLoaded', async () => {
+            // First, check if user is logged in
+            if (!isLoggedIn()) {
+                window.location.href = '/signin.html';
+                return;
+            }
+
+            // User is logged in, set the global currentUser variable
+            currentUser = getUserSession(); 
+            if (!currentUser || !currentUser.email) {
+                console.error('User session is invalid.');
+                window.location.href = '/signin.html';
+                return;
+            }
+
+            const email = currentUser.email;
+            const loadingMessage = document.getElementById('loadingMessage');
+            const noJoinsMessage = document.getElementById('noJoinsMessage');
+            const listElement = document.getElementById('joinedPowerBuysList');
+
+            try {
+                // Fetch dashboard data
+                const response = await fetch(`/dashboard-data?email=${encodeURIComponent(email)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // Populate user info
+                document.getElementById('dashFullName').textContent = data.fullName;
+                document.getElementById('dashEmail').textContent = data.email;
+                document.getElementById('dashPhone').textContent = data.phoneNumber || 'N/A';
+
+                // Populate joined PowerBuys
+                if (data.joinedPowerbuys && data.joinedPowerbuys.length > 0) {
+                    loadingMessage.classList.add('hidden');
+                    
+                    data.joinedPowerbuys.forEach(join => {
+                        const div = document.createElement('div');
+                        // *** NEW *** Added 'powerbuy-item' class
+                        div.className = 'powerbuy-item p-4 border rounded-lg flex justify-between items-center transition-all duration-300'; 
+                        
+                        // *** UPDATED *** Added the Leave button
+                        div.innerHTML = `
+                            <div>
+                                <h3 class="text-lg font-semibold">${join.powerbuyId}</h3>
+                                <p class="text-sm text-gray-500">Joined on: ${new Date(join.joinedAt).toLocaleDateString()}</p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="text-sm font-medium text-green-600 bg-green-100 px-3 py-1 rounded-full">Joined</span>
+                                <button onclick="openConfirmationModal('${join.powerbuyId}', this)" class="text-sm font-medium text-red-600 hover:text-red-800">
+                                    Leave
+                                </button>
+                            </div>
+                        `;
+                        listElement.appendChild(div);
+                    });
+
+                } else {
+                    loadingMessage.classList.add('hidden');
+                    noJoinsMessage.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                loadingMessage.textContent = 'Failed to load your data. Please try again later.';
+            }
+        });
+    </script>
+
 </body>
 </html>

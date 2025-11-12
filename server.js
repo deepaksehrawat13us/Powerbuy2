@@ -1,138 +1,231 @@
-// server.js — Complete backend for Powerbuy2
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const fs = require("fs-extra");
-
+const express = require('express');
+const fs = require('fs').promises;
+const path = require('path');
 const app = express();
-app.use(cors());
+const port = 5000;
+
+// Middleware to parse JSON and urlencoded bodies
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Serve static frontend
-app.use(express.static(path.join(__dirname, "public")));
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({ ok: true, service: "powerbuy2", version: "1.0.0" });
-});
+// File path for signups
+const SIGNUPS_FILE = path.join(__dirname, 'signups.json');
+const JOINS_FILE = path.join(__dirname, 'joins.json');
 
-// JSON file paths
-const signupsFile = path.join(__dirname, "signups.json");
-const joinsFile = path.join(__dirname, "joins.json");
-
-// =============== SIGNUP ROUTE ===============
-app.post("/api/signup", async (req, res) => {
-  try {
-    const { name, email, phone, confirmPhone } = req.body;
-    if (!name || !email || !phone)
-      return res.status(400).json({ error: "Missing required fields" });
-    if (phone !== confirmPhone)
-      return res.status(400).json({ error: "Phone numbers do not match" });
-
-    let signups = [];
-    if (await fs.pathExists(signupsFile)) {
-      const data = await fs.readFile(signupsFile, "utf8");
-      signups = JSON.parse(data || "[]");
+// Helper function to read JSON data
+async function readData(filePath) {
+    try {
+        await fs.access(filePath);
+        const data = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        // If file doesn't exist, return empty array
+        if (error.code === 'ENOENT') {
+            return [];
+        }
+        throw error;
     }
+}
 
-    // prevent duplicate users
-    const existing = signups.find(
-      (u) => u.email === email || u.phone === phone
-    );
-    if (existing)
-      return res.status(400).json({ error: "User already registered" });
+// Helper function to write JSON data
+async function writeData(filePath, data) {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+}
 
-    const newUser = { name, email, phone, timestamp: new Date().toISOString() };
-    signups.push(newUser);
-    await fs.writeFile(signupsFile, JSON.stringify(signups, null, 2));
-
-    console.log(`✅ New signup: ${email}`);
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("❌ Error in signup:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
+// --- Root Route ---
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// =============== JOIN POWERBUY ===============
-app.post("/api/join-powerbuy", async (req, res) => {
-  try {
-    const { name, email, phone, brand, type, specs, notes } = req.body;
-    if (!name || !email || !phone || !brand || !type)
-      return res.status(400).json({ error: "Missing required fields" });
+// --- Signup Route ---
+app.post('/signup', async (req, res) => {
+    try {
+        const { fullName, email, phoneNumber, password, confirmPassword } = req.body;
 
-    let joins = [];
-    if (await fs.pathExists(joinsFile)) {
-      const data = await fs.readFile(joinsFile, "utf8");
-      joins = JSON.parse(data || "[]");
+        if (!fullName || !email || !phoneNumber || !password || !confirmPassword) {
+            return res.status(400).json({ message: 'All fields are required.' });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({ message: 'Passwords do not match.' });
+        }
+        
+        // In a real-world app, HASH passwords here using bcrypt
+        
+        const signups = await readData(SIGNUPS_FILE);
+
+        const userExists = signups.some(user => user.email === email);
+        if (userExists) {
+            return res.status(400).json({ message: 'Email already in use.' });
+        }
+
+        const newSignup = { 
+            fullName, 
+            email, 
+            phoneNumber,
+            password: password // Storing plain text password (NOT RECOMMENDED)
+        };
+        signups.push(newSignup);
+
+        await writeData(SIGNUPS_FILE, signups);
+
+        res.status(201).json({ 
+            message: 'Signup successful!',
+            user: {
+                fullName: newSignup.fullName,
+                email: newSignup.email,
+                phoneNumber: newSignup.phoneNumber
+            }
+        });
+
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ message: 'Server error during signup.' });
     }
-
-    const duplicate = joins.find(
-      (j) => j.user.email === email && j.powerbuy.brand === brand && j.powerbuy.type === type
-    );
-    if (duplicate)
-      return res.status(400).json({ error: "You have already joined this PowerBuy" });
-
-    const newJoin = {
-      user: { name, email, phone },
-      powerbuy: { brand, type },
-      specs: specs || {},
-      notes: notes || "",
-      joinedAt: new Date().toISOString(),
-    };
-
-    joins.push(newJoin);
-    await fs.writeFile(joinsFile, JSON.stringify(joins, null, 2));
-    console.log(`✅ ${email} joined ${brand} (${type})`);
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("❌ Join error:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
 });
 
-// =============== USER POWERBUYS ROUTES ===============
-app.get("/api/user-powerbuys", async (req, res) => {
-  try {
-    if (await fs.pathExists(joinsFile)) {
-      const data = await fs.readFile(joinsFile, "utf8");
-      const joins = JSON.parse(data || "[]");
-      res.status(200).json(joins);
-    } else {
-      res.status(200).json([]);
+// --- Signin Route ---
+app.post('/signin', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required.' });
+        }
+
+        const signups = await readData(SIGNUPS_FILE);
+        const user = signups.find(u => u.email === email);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // In a real-world app, COMPARE hashes here using bcrypt
+        
+        if (user.password !== password) {
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
+
+        res.status(200).json({ 
+            message: 'Sign in successful!',
+            user: {
+                fullName: user.fullName,
+                email: user.email,
+                phoneNumber: user.phoneNumber
+            }
+        });
+
+    } catch (error) {
+        console.error('Signin error:', error);
+        res.status(500).json({ message: 'Server error during sign in.' });
     }
-  } catch (err) {
-    console.error("❌ Error reading joins.json:", err);
-    res.status(500).json({ error: "Unable to load PowerBuys" });
-  }
 });
 
-app.post("/api/leave-powerbuy", async (req, res) => {
-  try {
-    const { email, brand, type } = req.body;
-    if (!email || !brand || !type)
-      return res.status(400).json({ error: "Missing required fields" });
 
-    if (!(await fs.pathExists(joinsFile)))
-      return res.status(404).json({ error: "No PowerBuys found" });
+// --- "Join a Powerbuy" Route ---
+app.post('/join', async (req, res) => {
+    try {
+        const { fullName, email, powerbuyId } = req.body;
 
-    const data = await fs.readFile(joinsFile, "utf8");
-    let joins = JSON.parse(data || "[]");
-    const updated = joins.filter(
-      (j) => !(j.user.email === email && j.powerbuy.brand === brand && j.powerbuy.type === type)
-    );
+        if (!fullName || !email || !powerbuyId) {
+            return res.status(400).json({ message: 'Full name, email, and Powerbuy ID are required.' });
+        }
 
-    await fs.writeFile(joinsFile, JSON.stringify(updated, null, 2));
-    console.log(`👋 ${email} left ${brand} (${type})`);
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("❌ Leave error:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+        const joins = await readData(JOINS_FILE);
+
+        const alreadyJoined = joins.some(join => join.email === email && join.powerbuyId === powerbuyId);
+        if (alreadyJoined) {
+            return res.status(400).json({ message: 'You have already joined this Powerbuy.' });
+        }
+
+        const newJoin = { 
+            fullName, 
+            email, 
+            powerbuyId,
+            joinedAt: new Date().toISOString() 
+        };
+        joins.push(newJoin);
+
+        await writeData(JOINS_FILE, joins);
+
+        res.status(201).json({ message: 'Successfully joined the Powerbuy!' });
+
+    } catch (error) {
+        console.error('Join error:', error);
+        res.status(500).json({ message: 'Server error while joining.' });
+    }
 });
 
-// =============== START SERVER ===============
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`✅ Powerbuy2 backend running at http://localhost:${PORT}`);
+// --- Get Dashboard Data Route ---
+app.get('/dashboard-data', async (req, res) => {
+    try {
+        const { email } = req.query; 
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email parameter is required.' });
+        }
+
+        const joins = await readData(JOINS_FILE);
+        const signups = await readData(SIGNUPS_FILE);
+
+        const user = signups.find(u => u.email === email);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const userJoins = joins.filter(join => join.email === email);
+
+        res.status(200).json({
+            fullName: user.fullName,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            joinedPowerbuys: userJoins
+        });
+
+    } catch (error) {
+        console.error('Dashboard data error:', error);
+        res.status(500).json({ message: 'Server error retrieving dashboard data.' });
+    }
+});
+
+// *** NEW *** --- "Leave a Powerbuy" Route ---
+app.delete('/leave-powerbuy', async (req, res) => {
+    try {
+        const { email, powerbuyId } = req.body;
+
+        if (!email || !powerbuyId) {
+            return res.status(400).json({ message: 'Email and Powerbuy ID are required.' });
+        }
+
+        const joins = await readData(JOINS_FILE);
+
+        // Find the index of the join to remove
+        const indexToRemove = joins.findIndex(join => join.email === email && join.powerbuyId === powerbuyId);
+
+        if (indexToRemove === -1) {
+            // Join not found
+            return res.status(404).json({ message: 'You are not a member of this Powerbuy.' });
+        }
+
+        // Remove the join from the array
+        joins.splice(indexToRemove, 1);
+
+        // Write the updated array back to the file
+        await writeData(JOINS_FILE, joins);
+
+        res.status(200).json({ message: 'Successfully left the Powerbuy.' });
+
+    } catch (error) {
+        console.error('Leave Powerbuy error:', error);
+        res.status(500).json({ message: 'Server error while leaving the Powerbuy.' });
+    }
+});
+
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
 });

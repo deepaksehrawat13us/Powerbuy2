@@ -16,7 +16,9 @@
   <header class="sticky top-0 bg-white border-b shadow-sm z-10">
     <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
       <a href="index.html" class="text-2xl font-bold text-black">PowerBuy</a>
-      <nav class="hidden md:flex space-x-6 text-sm font-semibold items-center">
+      
+      <!-- ID "desktopNav" is added here -->
+      <nav id="desktopNav" class="hidden md:flex space-x-6 text-sm font-semibold items-center">
         <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
         <a href="powerbuys.html" class="hover:text-gray-500">PowerBuys</a>
         <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
@@ -66,7 +68,7 @@
   <section id="how" class="border-t border-b bg-gray-50">
     <div class="max-w-6xl mx-auto p-6 md:p-10">
       <h2 class="text-2xl md:text-3xl font-bold">How it works (3 steps)</h2>
-      <div class="mt-6 grid md-grid-cols-3 gap-6">
+      <div class="mt-6 grid md:grid-cols-3 gap-6">
         <div class="rounded-2xl border p-6">
           <h3 class="font-semibold text-lg">1) Join a PowerBuy</h3>
           <p class="text-gray-600 mt-2">Choose your brand (e.g., Apple, Samsung, Nissan).</p>
@@ -88,13 +90,11 @@
     © <span id="year"></span> PowerBuy. All rights reserved.
   </footer>
 
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-    const menuBtn = document.getElementById("menuBtn");
-    const mm = document.getElementById("mobileMenu");
-    menuBtn?.addEventListener("click", () => mm.classList.toggle("hidden"));
-  </script>
+  <!-- 
+    *** UPDATED SCRIPT SECTION ***
+    Now you only need to load session.js!
+  -->
+  <script src="/session.js?v=1.2"></script> <!-- Incremented version to be safe -->
 
-  <script src="session.js"></script>
 </body>
 </html>
