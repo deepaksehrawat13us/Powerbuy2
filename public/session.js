@@ -48,6 +48,49 @@ function isLoggedIn() {
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // --- NEW: Inject Contact Modal and Toast HTML into the page ---
+    const modalHtml = `
+        <!-- Contact Us Modal -->
+        <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                <h3 class="text-2xl font-bold mb-4">Contact Us</h3>
+                <form id="contactForm">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="contactEmail" class="block text-sm font-medium text-gray-700">Your Email</label>
+                            <input type="email" id="contactEmail" name="email" required
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="contactMessage" class="block text-sm font-medium text-gray-700">Message</label>
+                            <textarea id="contactMessage" name="message" rows="4" required
+                                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                      placeholder="How can we help?"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button type="button" id="contactCancel"
+                                class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Success Toast Notification -->
+        <div id="successToast" class="fixed top-5 right-5 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50">
+            Thank you for reaching out! We will respond within 2 business days.
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    // --- END: Inject Modal ---
+
+
     // --- THIS IS THE AUTH LOGIC ---
     
     // Check if the user is logged in
@@ -66,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             const desktopLinks = `
-                <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
+                <a href="#contact" id="contactLinkDynamic" class="hover:text-gray-500">Contact Us</a>
                 <a href="powerbuys.html" class="hover:text-gray-500">PowerBuys</a>
                 <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
                 ${welcomeMessage}
@@ -74,10 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             const mobileLinks = `
-                <a href="index.html#how" class="block px-4 py-2 hover:bg-gray-100">How it Works</a>
+                <a href="#contact" id="mobileContactLinkDynamic" class="block px-4 py-2 hover:bg-gray-100">Contact Us</a>
                 <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">PowerBuys</a>
                 <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My PowerBuys</a>
-                <a href="#" id="mobileSignOutBtn" class="block px-4 py-2 text-red-600 hover:bg-gray-100">Sign Out</a>
+                <a href="#" id="mobileSignOutBtn" class="block px-4 py-2 text-red-600 hover:bg-gray-1Of-type(1)0">Sign Out</a>
             `;
 
             // 3. Update the navigation bars
@@ -119,4 +162,89 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.getElementById("menuBtn");
     const mm = document.getElementById("mobileMenu");
     menuBtn?.addEventListener("click", () => mm.classList.toggle("hidden"));
+    
+    // --- *** NEW: Contact Modal Logic (FIXED ORDER) *** ---
+    
+    // 1. DEFINE variables for modal elements first
+    const contactModal = document.getElementById('contactModal');
+    const contactForm = document.getElementById('contactForm');
+    const contactCancel = document.getElementById('contactCancel');
+    const contactEmailInput = document.getElementById('contactEmail');
+    const successToast = document.getElementById('successToast');
+
+    // 2. DEFINE functions that use those variables
+    // Function to open the modal
+    function openContactModal(event) {
+        event.preventDefault();
+        // Pre-fill email if user is logged in
+        if (isLoggedIn()) {
+            const user = getUserSession();
+            contactEmailInput.value = user.email;
+            contactEmailInput.readOnly = true; // Don't let them change it
+        } else {
+            contactEmailInput.value = '';
+            contactEmailInput.readOnly = false;
+        }
+        contactModal.classList.remove('hidden');
+        contactModal.classList.add('flex');
+    }
+
+    // Function to close the modal
+    function closeContactModal() {
+        contactModal.classList.add('hidden');
+        contactModal.classList.remove('flex');
+    }
+
+    // 3. ATTACH event listeners
+    // Find all "Contact Us" links (static and dynamic) and attach event
+    // We search the whole document to find all links, static or dynamic
+    document.querySelectorAll('a[href="index.html#how"], a[href="#contact"]').forEach(link => {
+        link.textContent = 'Contact Us';
+        link.href = '#contact'; // Ensure href is consistent
+        link.addEventListener('click', openContactModal);
+    });
+
+    // Close button
+    if (contactCancel) {
+        contactCancel.addEventListener('click', closeContactModal);
+    }
+
+    // Form submission
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = contactEmailInput.value;
+            const message = document.getElementById('contactMessage').value;
+            let fullName = null;
+
+            if (isLoggedIn()) {
+                fullName = getUserSession().fullName;
+            }
+
+            try {
+                const response = await fetch('/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, message, fullName })
+                });
+
+                if (response.ok) {
+                    closeContactModal();
+                    contactForm.reset(); // Clear the form
+                    // Show success toast
+                    successToast.classList.remove('hidden');
+                    setTimeout(() => {
+                        successToast.classList.add('hidden');
+                    }, 3000); // Hide after 3 seconds
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                }
+            } catch (err) {
+                console.error('Contact form submission error:', err);
+                alert('A network error occurred. Please try again.');
+            }
+        });
+    }
+    // --- END: Contact Modal Logic ---
 });

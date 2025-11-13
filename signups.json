@@ -148,5 +148,12 @@
     "email": "POTATO@GMAIL.COM",
     "phoneNumber": "6786877472",
     "password": "POTATO"
+  },
+  {
+    "id": "1763051908276",
+    "fullName": "Arvind",
+    "email": "Arvind@gmail.com",
+    "phoneNumber": "7777777777",
+    "password": "Arvind"
   }
 ]

@@ -13,11 +13,17 @@
   <!-- UNIVERSAL HEADER -->
   <header class="sticky top-0 bg-white border-b shadow-sm z-10">
     <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
-      <a href="index.html" class="text-2xl font-bold text-black">PowerBuy</a>
+      
+      <!-- *** UPDATED LOGO *** -->
+      <div>
+        <a href="index.html" class="text-2xl font-bold text-black leading-none">PowerBuy</a>
+        <div class="text-xs font-semibold text-blue-600">Ab customer ki chalegi</div>
+      </div>
+      <!-- *** END UPDATED LOGO *** -->
       
       <!-- *** ID ADDED *** -->
       <nav id="desktopNav" class="hidden md:flex space-x-6 text-sm font-semibold items-center">
-        <a href="index.html#how" class="hover:text-gray-500">How it Works</a>
+        <a href="#contact" class="hover:text-gray-500">Contact Us</a>
         <a href="powerbuys.html" class="text-indigo-600 font-bold">PowerBuys</a>
         <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
         <a href="signin.html" class="hover:text-gray-500">Sign In</a>
@@ -28,7 +34,7 @@
     
     <!-- *** ID ALREADY EXISTS *** -->
     <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
-      <a href="index.html#how" class="block px-4 py-2 hover:bg-gray-100">How it Works</a>
+      <a href="#contact" class="block px-4 py-2 hover:bg-gray-100">Contact Us</a>
       <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100 font-bold text-indigo-600">PowerBuys</a>
       <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My PowerBuys</a>
       <a href="signin.html" class="block px-4 py-2 hover:bg-gray-100">Sign In</a>
@@ -57,15 +63,15 @@
   </section>
 
   <!-- JOIN FORM MODAL -->
-  <div id="joinModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+  <div id="joinModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative overflow-y-auto" style="max-height: 90vh;">
       <h3 class="text-2xl font-bold mb-4 text-center">Join PowerBuy</h3>
       <form id="joinForm" class="space-y-4">
         <input type="hidden" id="joinBrand" name="brand" />
         <input type="hidden" id="joinType" name="type" />
 
         <!-- Dynamic specs fields -->
-        <div id="dynamicSpecs"></div>
+        <div id="dynamicSpecs" class="space-y-4"></div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Additional Notes (Optional)</label>
@@ -88,6 +94,7 @@
     </div>
   </div>
 
+
   <!-- FOOTER -->
   <footer class="py-6 text-center text-sm text-gray-500 border-t mt-10">
     © <span id="year"></span> PowerBuy. All Rights Reserved.
@@ -103,11 +110,9 @@
   <script>
     // This script now runs *after* session.js has been loaded and executed
     
-    // --- Page setup logic ---
-    document.getElementById("year").textContent = new Date().getFullYear();
-    const menuBtn = document.getElementById("menuBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    menuBtn?.addEventListener("click", () => mobileMenu.classList.toggle("hidden"));
+    // --- Page setup logic (THIS IS HANDLED BY session.js, but we keep year and menu) ---
+    // Note: session.js already handles the mobile menu toggle and year
+    // We just need to handle the page-specific logic
 
     // --- PowerBuys page-specific logic ---
     
@@ -170,14 +175,20 @@
     function openJoinForm(brand, type) {
       // Use isLoggedIn() from session.js
       if (!isLoggedIn()) { 
-        alert("Please sign up or sign in before joining a PowerBuy!");
+        // We can't use alert, so let's use the modal for a message, or just redirect
+        // For simplicity, we'll redirect.
         window.location.href = "signin.html";
         return;
       }
+      // Re-fetch user in case it's needed (it is, for the form submission)
+      user = getUserSession(); 
+      
       joinBrand.value = brand;
       joinType.value = type;
 
       let specsHtml = '';
+      const commonSelectClass = "w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none";
+      const commonLabelClass = "block text-sm font-medium text-gray-700";
 
       // --- Phone Specifications ---
       if (type === "phone") {
@@ -216,12 +227,11 @@
           case "Samsung":
             models = `
               <option value="">Select Model</option>
-              <option>Galaxy S25 Ultra</option>
-              <option>Galaxy S25</option>
               <option>Galaxy S24 Ultra</option>
               <option>Galaxy S24</option>
               <option>Galaxy Z Fold 6</option>
-              <option>Galaxy Z Flip 6</option>`;
+              <option>Galaxy Z Flip 6</option>
+              <option>Galaxy A55</option>`;
             colors = `
               <option value="">Select Color</option>
               <option>Titanium Gray</option>
@@ -232,10 +242,9 @@
           case "OnePlus":
             models = `
               <option value="">Select Model</option>
-              <option>OnePlus 13</option>
               <option>OnePlus 12</option>
               <option>OnePlus 12R</option>
-              <option>OnePlus Nord 4</option>`;
+              <option>OnePlus Nord CE 4</option>`;
             colors = `
               <option value="">Select Color</option>
               <option>Flowy Emerald</option>
@@ -245,10 +254,10 @@
           case "Xiaomi":
             models = `
               <option value="">Select Model</option>
-              <option>Xiaomi 15 Pro</option>
               <option>Xiaomi 14 Ultra</option>
               <option>Xiaomi 14</option>
-              <option>Redmi Note 14 Pro</option>`;
+              <option>Redmi Note 13 Pro+</option>
+              <option>POCO F6</option>`;
             colors = `
               <option value="">Select Color</option>
               <option>Black</option>
@@ -275,61 +284,55 @@
 
         specsHtml = `
           <div>
-            <label class="block text-sm font-medium text-gray-700">Model</label>
-            <select id="model" name="Model" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${models}</select>
+            <label class="${commonLabelClass}">Model</label>
+            <select id="model" name="Model" required class="${commonSelectClass}">${models}</select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Storage</label>
-            <select id="storage" name="Storage" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${storageOptions}</select>
+            <label class="${commonLabelClass}">Storage</label>
+            <select id="storage" name="Storage" required class="${commonSelectClass}">${storageOptions}</select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Color</label>
-            <select id="color" name="Color" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${colors}</select>
+            <label class="${commonLabelClass}">Color</label>
+            <select id="color" name="Color" required class="${commonSelectClass}">${colors}</select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Carrier</label>
-            <select id="carrier" name="Carrier" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${carrierOptions}</select>
+            <label class="${commonLabelClass}">Carrier</label>
+            <select id="carrier" name="Carrier" required class="${commonSelectClass}">${carrierOptions}</select>
           </div>`;
+      } 
       
       // --- Car Specifications ---
-      } else if (type === "car") {
+      else if (type === "car") {
         let models = '';
         let trims = '';
         let colors = '';
-        let transmissions = `
+        // Common car specs
+        const transmissionOptions = `
           <option value="">Select Transmission</option>
-          <option>Manual</option>
-          <option>Automatic</option>`; // Generic default
-
+          <option>Automatic</option>
+          <option>Manual</option>`;
+        
         switch (brand) {
           case "Maruti Suzuki":
             models = `
               <option value="">Select Model</option>
               <option>Swift</option>
               <option>Baleno</option>
+              <option>Dzire</option>
               <option>Brezza</option>
-              <option>Grand Vitara</option>
-              <option>Fronx</option>`;
+              <option>Grand Vitara</option>`;
             trims = `
               <option value="">Select Trim</option>
               <option>LXi</option>
               <option>VXi</option>
               <option>ZXi</option>
-              <option>ZXi+</option>
-              <option>Alpha</option>
-              <option>Zeta</option>`;
+              <option>ZXi+</option>`;
             colors = `
               <option value="">Select Color</option>
-              <option>Arctic White</option>
+              <option>Pearl Arctic White</option>
               <option>Splendid Silver</option>
-              <option>Nexa Blue</option>
+              <option>Magma Grey</option>
               <option>Sizzling Red</option>`;
-            transmissions = `
-              <option value="">Select Transmission</option>
-              <option>Manual</option>
-              <option>Automatic (AGS)</option>
-              <option>Automatic (TC)</option>
-              <option>Automatic (CVT)</option>`;
             break;
           case "Hyundai":
             models = `
@@ -342,7 +345,6 @@
               <option value="">Select Trim</option>
               <option>E</option>
               <option>S</option>
-              <option>S(O)</option>
               <option>SX</option>
               <option>SX(O)</option>`;
             colors = `
@@ -350,13 +352,7 @@
               <option>Atlas White</option>
               <option>Titan Grey</option>
               <option>Fiery Red</option>
-              <option>Abyss Black</option>`;
-            transmissions = `
-              <option value="">Select Transmission</option>
-              <option>Manual</option>
-              <option>Automatic (iVT)</option>
-              <option>Automatic (DCT)</option>
-              <option>Automatic (TC)</option>`;
+              <option>Starry Night</option>`;
             break;
           case "Tata":
             models = `
@@ -364,31 +360,24 @@
               <option>Nexon</option>
               <option>Punch</option>
               <option>Harrier</option>
-              <option>Safari</option>
-              <option>Altroz</option>`;
+              <option>Safari</option>`;
             trims = `
               <option value="">Select Trim</option>
-              <option>Smart</option>
               <option>Pure</option>
               <option>Creative</option>
               <option>Fearless</option>
               <option>Accomplished</option>`;
             colors = `
               <option value="">Select Color</option>
-              <option>Pristine White</option>
+              <option>Oberon Black</option>
               <option>Daytona Grey</option>
-              <option>Flame Red</option>
-              <option>Oberon Black</option>`;
-            transmissions = `
-              <option value="">Select Transmission</option>
-              <option>Manual</option>
-              <option>Automatic (AMT)</option>
-              <option>Automatic (DCA)</option>`;
+              <option>Pristine White</option>
+              <option>Fearless Red</option>`;
             break;
           case "Mahindra":
             models = `
               <option value="">Select Model</option>
-              <option>XUV 700</option>
+              <option>XUV700</option>
               <option>Scorpio-N</option>
               <option>Thar</option>
               <option>XUV 3XO</option>`;
@@ -398,22 +387,16 @@
               <option>AX3</option>
               <option>AX5</option>
               <option>AX7</option>
-              <option>Z2</option>
-              <option>Z4</option>
-              <option>Z8</option>`;
+              <option>AX7L</option>`;
             colors = `
               <option value="">Select Color</option>
-              <option>Deep Forest</option>
               <option>Everest White</option>
-              <option>Napoli Black</option>
-              <option>Red Rage</option>`;
-            transmissions = `
-              <option value="">Select Transmission</option>
-              <option>Manual</option>
-              <option>Automatic (TC)</option>`;
+              <option>Dazzling Silver</option>
+              <option>Midnight Black</option>
+              <option>Deep Forest</option>`;
             break;
           case "Toyota":
-             models = `
+            models = `
               <option value="">Select Model</option>
               <option>Innova Hycross</option>
               <option>Fortuner</option>
@@ -423,26 +406,20 @@
               <option value="">Select Trim</option>
               <option>G</option>
               <option>GX</option>
+              <option>V</option>
               <option>VX</option>
-              <option>ZX</option>
-              <option>4x2</option>
-              <option>4x4</option>`;
+              <option>ZX</option>`;
             colors = `
               <option value="">Select Color</option>
               <option>Super White</option>
               <option>Attitude Black</option>
-              <option>Platinum White Pearl</option>`;
-            transmissions = `
-              <option value="">Select Transmission</option>
-              <option>Manual</option>
-              <option>Automatic (CVT)</option>
-              <option>Automatic (TC)</option>`;
+              <option>Silver Metallic</option>
+              <option>Gaming Grey</option>`;
             break;
           case "Nissan":
              models = `
               <option value="">Select Model</option>
-              <option>Magnite</option>
-              <option>Kicks (Discontinued but available)</option>`;
+              <option>Magnite</option>`;
             trims = `
               <option value="">Select Trim</option>
               <option>XE</option>
@@ -452,14 +429,11 @@
             colors = `
               <option value="">Select Color</option>
               <option>Blade Silver</option>
+              <option>Sandstone Brown</option>
               <option>Onyx Black</option>
-              <option>Pearl White</option>`;
-            transmissions = `
-              <option value="">Select Transmission</option>
-              <option>Manual</Toption>
-              <option>Automatic (CVT)</option>`;
+              <option>Flare Garnet Red</option>`;
             break;
-          default: // Fallback
+          default:
             models = `<option value="Other">Other</option>`;
             trims = `<option value="Other">Other</option>`;
             colors = `<option value="Other">Other</option>`;
@@ -468,24 +442,25 @@
 
         specsHtml = `
           <div>
-            <label class="block text-sm font-medium text-gray-700">Model</label>
-            <select id="model" name="Model" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${models}</select>
+            <label class="${commonLabelClass}">Model</label>
+            <select id="model" name="Model" required class="${commonSelectClass}">${models}</select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Trim</label>
-            <select id="trim" name="Trim" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${trims}</select>
+            <label class="${commonLabelClass}">Trim</label>
+            <select id="trim" name="Trim" required class="${commonSelectClass}">${trims}</select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Color</label>
-            <select id="color" name="Color" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${colors}</select>
+            <label class="${commonLabelClass}">Color</label>
+            <select id="color" name="Color" required class="${commonSelectClass}">${colors}</select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Transmission</label>
-            <select id="transmission" name="Transmission" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${transmissions}</select>
+            <label class="${commonLabelClass}">Transmission</label>
+            <select id="transmission" name="Transmission" required class="${commonSelectClass}">${transmissionOptions}</select>
           </div>`;
       }
 
       dynamicSpecs.innerHTML = specsHtml;
+
       joinModal.classList.remove("hidden");
       joinModal.classList.add("flex");
     }
@@ -497,26 +472,25 @@
 
     joinForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      
-      // Get the fresh user data from session.js
-      const user = getUserSession();
-      if (!user) {
-        alert('Your session has expired. Please sign in to join.');
-        window.location.href = '/signin.html';
-        return;
-      }
+      const specs = {};
+      document.querySelectorAll("#dynamicSpecs select").forEach(sel => specs[sel.name] = sel.value);
 
-      // Send the data the /join endpoint expects
+      // *** UPDATED *** Get full user info from session
+      const powerbuyId = `${joinBrand.value} - ${specs.Model || joinType.value}`; // Create a unique-ish ID
+
       const formData = {
         fullName: user.fullName,
         email: user.email,
-        powerbuyId: joinBrand.value // 'Nissan', 'Apple', etc.
-        // The server.js /join route doesn't use specs or notes,
-        // but we could add them later.
+        phoneNumber: user.phoneNumber, // Send phone number from session
+        powerbuyId: powerbuyId, // Send the more descriptive ID
+        brand: joinBrand.value,
+        type: joinType.value,
+        specs,
+        notes: document.getElementById("notes").value
       };
 
       try {
-        // Changed endpoint from /api/join-powerbuy to /join
+        // *** UPDATED *** Send to the correct '/join' endpoint
         const res = await fetch("/join", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -525,21 +499,41 @@
         const data = await res.json();
 
         if (res.ok) {
-          alert(`✅ Joined ${formData.powerbuyId} PowerBuy successfully!`);
+          alert(`✅ Joined ${formData.powerbuyId} PowerBuy successfully!`); // Use alert as placeholder
           joinModal.classList.add("hidden");
+          joinModal.classList.remove("flex");
+          // Optionally, redirect to dashboard
+          window.location.href = '/dashboard.html';
         } else {
-          alert(`❌ ${data.message || "Unable to join PowerBuy."}`);
+          alert(`❌ ${data.message || "Unable to join PowerBuy."}`); // Use alert as placeholder
         }
       } catch (err) {
         console.error(err);
-        alert("Network error. Try again later.");
+        alert("Network error. Try again later."); // Use alert as placeholder
       }
+    });
+
+    // --- Logic to read URL parameters ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const brand = urlParams.get('brand');
+        const type = urlParams.get('type');
+
+        if (brand) {
+            searchInput.value = brand;
+        }
+        if (type) {
+            categoryFilter.value = type;
+        }
+        
+        // Render list with pre-filled filters
+        renderList();
     });
 
     searchInput.addEventListener("input", renderList);
     categoryFilter.addEventListener("change", renderList);
     
-    // Initial render
+    // Initial render on page load
     renderList();
   </script>
 
