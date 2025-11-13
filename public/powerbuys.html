@@ -114,13 +114,19 @@
     // Get user from session.js function
     let user = getUserSession(); 
 
+    // *** UPDATED *** Added new brands popular in India
     const powerbuys = [
-      { brand: "Nissan", type: "car", joinBy: "Nov 30, 2025", participants: 14 },
       { brand: "Apple", type: "phone", joinBy: "Nov 25, 2025", participants: 28 },
       { brand: "Samsung", type: "phone", joinBy: "Dec 5, 2025", participants: 19 },
-      { brand: "Toyota", type: "car", joinBy: "Dec 10, 2025", participants: 9 },
+      { brand: "Xiaomi", type: "phone", joinBy: "Dec 1, 2025", participants: 0 },
       { brand: "OnePlus", type: "phone", joinBy: "Nov 28, 2025", participants: 22 },
-      { brand: "Hyundai", type: "car", joinBy: "Dec 3, 2025", participants: 11 }
+      { brand: "Vivo", type: "phone", joinBy: "Dec 1, 2025", participants: 0 },
+      { brand: "Maruti Suzuki", type: "car", joinBy: "Dec 15, 2025", participants: 0 },
+      { brand: "Hyundai", type: "car", joinBy: "Dec 3, 2025", participants: 11 },
+      { brand: "Tata", type: "car", joinBy: "Dec 15, 2025", participants: 0 },
+      { brand: "Mahindra", type: "car", joinBy: "Dec 15, 2025", participants: 0 },
+      { brand: "Toyota", type: "car", joinBy: "Dec 10, 2025", participants: 9 },
+      { brand: "Nissan", type: "car", joinBy: "Nov 30, 2025", participants: 14 }
     ];
 
     const listContainer = document.getElementById("powerbuyList");
@@ -160,8 +166,8 @@
         listContainer.innerHTML = `<p class="text-gray-500 text-center col-span-full">No PowerBuys found.</p>`;
     }
 
+    // *** UPDATED *** This function is now much more comprehensive
     function openJoinForm(brand, type) {
-      // *** UPDATED ***
       // Use isLoggedIn() from session.js
       if (!isLoggedIn()) { 
         alert("Please sign up or sign in before joining a PowerBuy!");
@@ -171,91 +177,315 @@
       joinBrand.value = brand;
       joinType.value = type;
 
-      // dynamic fields
+      let specsHtml = '';
+
+      // --- Phone Specifications ---
       if (type === "phone") {
-        dynamicSpecs.innerHTML = `
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Model</label>
-            <select id="model" name="Model" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+        let models = '';
+        let colors = '';
+        // Common phone specs
+        const storageOptions = `
+          <option value="">Select Storage</option>
+          <option>128GB</option>
+          <option>256GB</option>
+          <option>512GB</option>
+          <option>1TB</option>`;
+        const carrierOptions = `
+          <option value="">Select Carrier</option>
+          <option>Unlocked</option>
+          <option>Jio</option>
+          <option>Airtel</option>
+          <option>Vi (Vodafone Idea)</option>`;
+        
+        switch (brand) {
+          case "Apple":
+            models = `
               <option value="">Select Model</option>
+              <option>iPhone 16</option>
+              <option>iPhone 16 Pro</option>
               <option>iPhone 15</option>
-              <option>iPhone 14</option>
-              <option>Samsung S24 Ultra</option>
-              <option>Samsung S23</option>
-              <option>OnePlus 12</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Storage</label>
-            <select id="storage" name="Storage" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="">Select Storage</option>
-              <option>128GB</option>
-              <option>256GB</option>
-              <option>512GB</option>
-              <option>1TB</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Color</label>
-            <select id="color" name="Color" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option>iPhone 15 Pro</option>`;
+            colors = `
               <option value="">Select Color</option>
+              <option>Natural Titanium</option>
+              <option>Blue Titanium</option>
               <option>Black</option>
-              <option>Silver</option>
-              <option>Blue</option>
-              <option>Red</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Carrier</label>
-            <select id="carrier" name="Carrier" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="">Select Carrier</option>
-              <option>Unlocked</option>
-              <option>Verizon</option>
-              <option>AT&T</option>
-              <option>T-Mobile</option>
-            </select>
-          </div>`;
-      } else if (type === "car") {
-        dynamicSpecs.innerHTML = `
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Model</label>
-            <select id="model" name="Model" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option>Starlight</option>
+              <option>(PRODUCT)RED</option>`;
+            break;
+          case "Samsung":
+            models = `
               <option value="">Select Model</option>
-              <option>Sentra</option>
-              <option>Altima</option>
-              <option>Rogue</option>
-              <option>Magnite</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Color</label>
-            <select id="color" name="Color" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option>Galaxy S25 Ultra</option>
+              <option>Galaxy S25</option>
+              <option>Galaxy S24 Ultra</option>
+              <option>Galaxy S24</option>
+              <option>Galaxy Z Fold 6</option>
+              <option>Galaxy Z Flip 6</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Titanium Gray</option>
+              <option>Titanium Black</option>
+              <option>Titanium Violet</option>
+              <option>Phantom Black</option>`;
+            break;
+          case "OnePlus":
+            models = `
+              <option value="">Select Model</option>
+              <option>OnePlus 13</option>
+              <option>OnePlus 12</option>
+              <option>OnePlus 12R</option>
+              <option>OnePlus Nord 4</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Flowy Emerald</option>
+              <option>Silky Black</option>
+              <option>Cool Blue</option>`;
+            break;
+          case "Xiaomi":
+            models = `
+              <option value="">Select Model</option>
+              <option>Xiaomi 15 Pro</option>
+              <option>Xiaomi 14 Ultra</option>
+              <option>Xiaomi 14</option>
+              <option>Redmi Note 14 Pro</option>`;
+            colors = `
               <option value="">Select Color</option>
               <option>Black</option>
               <option>White</option>
-              <option>Silver</option>
-              <option>Blue</option>
-            </select>
+              <option>Jade Green</option>`;
+            break;
+          case "Vivo":
+            models = `
+              <option value="">Select Model</option>
+              <option>Vivo X100 Pro</option>
+              <option>Vivo V30 Pro</option>
+              <option>Vivo V30</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Asteroid Black</option>
+              <option>Classic Black</option>
+              <option>Peacock Green</option>`;
+            break;
+          default: // Fallback
+            models = `<option value="Other">Other</option>`;
+            colors = `<option value="Other">Other</option>`;
+            break;
+        }
+
+        specsHtml = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Model</label>
+            <select id="model" name="Model" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${models}</select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Storage</label>
+            <select id="storage" name="Storage" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${storageOptions}</select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Color</label>
+            <select id="color" name="Color" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${colors}</select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Carrier</label>
+            <select id="carrier" name="Carrier" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${carrierOptions}</select>
+          </div>`;
+      
+      // --- Car Specifications ---
+      } else if (type === "car") {
+        let models = '';
+        let trims = '';
+        let colors = '';
+        let transmissions = `
+          <option value="">Select Transmission</option>
+          <option>Manual</option>
+          <option>Automatic</option>`; // Generic default
+
+        switch (brand) {
+          case "Maruti Suzuki":
+            models = `
+              <option value="">Select Model</option>
+              <option>Swift</option>
+              <option>Baleno</option>
+              <option>Brezza</option>
+              <option>Grand Vitara</option>
+              <option>Fronx</option>`;
+            trims = `
+              <option value="">Select Trim</option>
+              <option>LXi</option>
+              <option>VXi</option>
+              <option>ZXi</option>
+              <option>ZXi+</option>
+              <option>Alpha</option>
+              <option>Zeta</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Arctic White</option>
+              <option>Splendid Silver</option>
+              <option>Nexa Blue</option>
+              <option>Sizzling Red</option>`;
+            transmissions = `
+              <option value="">Select Transmission</option>
+              <option>Manual</option>
+              <option>Automatic (AGS)</option>
+              <option>Automatic (TC)</option>
+              <option>Automatic (CVT)</option>`;
+            break;
+          case "Hyundai":
+            models = `
+              <option value="">Select Model</option>
+              <option>Creta</option>
+              <option>Venue</option>
+              <option>i20</option>
+              <option>Verna</option>`;
+            trims = `
+              <option value="">Select Trim</option>
+              <option>E</option>
+              <option>S</option>
+              <option>S(O)</option>
+              <option>SX</option>
+              <option>SX(O)</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Atlas White</option>
+              <option>Titan Grey</option>
+              <option>Fiery Red</option>
+              <option>Abyss Black</option>`;
+            transmissions = `
+              <option value="">Select Transmission</option>
+              <option>Manual</option>
+              <option>Automatic (iVT)</option>
+              <option>Automatic (DCT)</option>
+              <option>Automatic (TC)</option>`;
+            break;
+          case "Tata":
+            models = `
+              <option value="">Select Model</option>
+              <option>Nexon</option>
+              <option>Punch</option>
+              <option>Harrier</option>
+              <option>Safari</option>
+              <option>Altroz</option>`;
+            trims = `
+              <option value="">Select Trim</option>
+              <option>Smart</option>
+              <option>Pure</option>
+              <option>Creative</option>
+              <option>Fearless</option>
+              <option>Accomplished</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Pristine White</option>
+              <option>Daytona Grey</option>
+              <option>Flame Red</option>
+              <option>Oberon Black</option>`;
+            transmissions = `
+              <option value="">Select Transmission</option>
+              <option>Manual</option>
+              <option>Automatic (AMT)</option>
+              <option>Automatic (DCA)</option>`;
+            break;
+          case "Mahindra":
+            models = `
+              <option value="">Select Model</option>
+              <option>XUV 700</option>
+              <option>Scorpio-N</option>
+              <option>Thar</option>
+              <option>XUV 3XO</option>`;
+            trims = `
+              <option value="">Select Trim</option>
+              <option>MX</option>
+              <option>AX3</option>
+              <option>AX5</option>
+              <option>AX7</option>
+              <option>Z2</option>
+              <option>Z4</option>
+              <option>Z8</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Deep Forest</option>
+              <option>Everest White</option>
+              <option>Napoli Black</option>
+              <option>Red Rage</option>`;
+            transmissions = `
+              <option value="">Select Transmission</option>
+              <option>Manual</option>
+              <option>Automatic (TC)</option>`;
+            break;
+          case "Toyota":
+             models = `
+              <option value="">Select Model</option>
+              <option>Innova Hycross</option>
+              <option>Fortuner</option>
+              <option>Urban Cruiser Taisor</option>
+              <option>Glanza</option>`;
+            trims = `
+              <option value="">Select Trim</option>
+              <option>G</option>
+              <option>GX</option>
+              <option>VX</option>
+              <option>ZX</option>
+              <option>4x2</option>
+              <option>4x4</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Super White</option>
+              <option>Attitude Black</option>
+              <option>Platinum White Pearl</option>`;
+            transmissions = `
+              <option value="">Select Transmission</option>
+              <option>Manual</option>
+              <option>Automatic (CVT)</option>
+              <option>Automatic (TC)</option>`;
+            break;
+          case "Nissan":
+             models = `
+              <option value="">Select Model</option>
+              <option>Magnite</option>
+              <option>Kicks (Discontinued but available)</option>`;
+            trims = `
+              <option value="">Select Trim</option>
+              <option>XE</option>
+              <option>XL</option>
+              <option>XV</option>
+              <option>XV Premium</option>`;
+            colors = `
+              <option value="">Select Color</option>
+              <option>Blade Silver</option>
+              <option>Onyx Black</option>
+              <option>Pearl White</option>`;
+            transmissions = `
+              <option value="">Select Transmission</option>
+              <option>Manual</Toption>
+              <option>Automatic (CVT)</option>`;
+            break;
+          default: // Fallback
+            models = `<option value="Other">Other</option>`;
+            trims = `<option value="Other">Other</option>`;
+            colors = `<option value="Other">Other</option>`;
+            break;
+        }
+
+        specsHtml = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Model</label>
+            <select id="model" name="Model" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${models}</select>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">Trim</label>
-            <select id="trim" name="Trim" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="">Select Trim</option>
-              <option>Base</option>
-              <option>Sport</option>
-              <option>Luxury</option>
-            </select>
+            <select id="trim" name="Trim" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${trims}</select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Color</label>
+            <select id="color" name="Color" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${colors}</select>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">Transmission</label>
-            <select id="transmission" name="Transmission" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="">Select Transmission</option>
-              <option>Automatic</option>
-              <option>Manual</option>
-            </select>
+            <select id="transmission" name="Transmission" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">${transmissions}</select>
           </div>`;
       }
 
+      dynamicSpecs.innerHTML = specsHtml;
       joinModal.classList.remove("hidden");
       joinModal.classList.add("flex");
     }
@@ -268,7 +498,6 @@
     joinForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
-      // *** UPDATED ***
       // Get the fresh user data from session.js
       const user = getUserSession();
       if (!user) {
@@ -277,7 +506,6 @@
         return;
       }
 
-      // *** UPDATED ***
       // Send the data the /join endpoint expects
       const formData = {
         fullName: user.fullName,
@@ -288,7 +516,6 @@
       };
 
       try {
-        // *** UPDATED ***
         // Changed endpoint from /api/join-powerbuy to /join
         const res = await fetch("/join", {
           method: "POST",
@@ -298,7 +525,6 @@
         const data = await res.json();
 
         if (res.ok) {
-          // *** UPDATED ***
           alert(`✅ Joined ${formData.powerbuyId} PowerBuy successfully!`);
           joinModal.classList.add("hidden");
         } else {
