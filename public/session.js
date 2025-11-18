@@ -1,37 +1,72 @@
 console.log('session.js has been loaded and executed.');
 
-// This file manages the user's session in the browser's sessionStorage
+// This file manages the user's session in the browser's localStorage (changed from sessionStorage for persistence)
 
 /**
- * Saves user data to sessionStorage.
- * @param {object} user - The user object (e.g., { fullName, email, phoneNumber })
+ * Saves user data and authentication tokens to localStorage.
+ * @param {object} user - The user object (e.g., { id, name, phone_number })
+ * @param {string} accessToken - JWT access token (optional)
+ * @param {string} refreshToken - JWT refresh token (optional)
  */
-function saveUserSession(user) {
+function saveUserSession(user, accessToken = null, refreshToken = null) {
+    console.log('🔵 saveUserSession called with:', { user, hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
+    
     if (typeof(Storage) !== "undefined") {
-        sessionStorage.setItem('powerbuyUser', JSON.stringify(user));
+        localStorage.setItem('powerbuyUser', JSON.stringify(user));
+        console.log('✅ Saved powerbuyUser to localStorage');
+        
+        // Store user ID separately for easy access
+        if (user && user.id) {
+            localStorage.setItem('userId', user.id);
+            console.log('✅ Saved userId to localStorage:', user.id);
+        }
+        
+        // Store tokens if provided
+        if (accessToken) {
+            localStorage.setItem('accessToken', accessToken);
+            console.log('✅ Saved accessToken to localStorage (length:', accessToken.length, ')');
+        }
+        if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken);
+            console.log('✅ Saved refreshToken to localStorage (length:', refreshToken.length, ')');
+        }
+        
+        // Verify it was saved
+        const verification = {
+            user: localStorage.getItem('powerbuyUser'),
+            userId: localStorage.getItem('userId'),
+            accessToken: localStorage.getItem('accessToken'),
+            refreshToken: localStorage.getItem('refreshToken')
+        };
+        console.log('✅ Verification - localStorage now contains:', verification);
+        console.log('✅ User session saved to localStorage successfully');
     } else {
-        console.error('Session storage is not supported in this browser.');
+        console.error('❌ Local storage is not supported in this browser.');
     }
 }
 
 /**
- * Retrieves user data from sessionStorage.
+ * Retrieves user data from localStorage.
  * @returns {object | null} The user object or null if not found.
  */
 function getUserSession() {
     if (typeof(Storage) !== "undefined") {
-        const user = sessionStorage.getItem('powerbuyUser');
+        const user = localStorage.getItem('powerbuyUser');
         return user ? JSON.parse(user) : null;
     }
     return null;
 }
 
 /**
- * Clears all user data from sessionStorage (logs the user out).
+ * Clears all user data from localStorage (logs the user out).
  */
 function clearUserSession() {
     if (typeof(Storage) !== "undefined") {
-        sessionStorage.removeItem('powerbuyUser');
+        localStorage.removeItem('powerbuyUser');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userId');
+        console.log('✅ User session cleared from localStorage');
     }
 }
 
@@ -40,7 +75,15 @@ function clearUserSession() {
  * @returns {boolean} True if a user session exists, false otherwise.
  */
 function isLoggedIn() {
-    return getUserSession() !== null;
+    const userSession = getUserSession();
+    const hasSession = userSession !== null;
+    console.log('🔍 isLoggedIn() check:', {
+        hasSession,
+        userSession,
+        localStorageUser: localStorage.getItem('powerbuyUser'),
+        localStorageToken: localStorage.getItem('accessToken')
+    });
+    return hasSession;
 }
 
 // --- ALL THE AUTH-CHECK LOGIC IS NOW HERE ---
@@ -104,8 +147,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 2. Create authenticated links
             // Using your original classes to maintain formatting
+            // Handle both old (fullName) and new (name) field names for compatibility
+            const userName = user.name || user.fullName || 'User';
             const welcomeMessage = `
-                <span class="text-gray-700">Welcome, ${user.fullName.split(' ')[0]}!</span>
+                <span class="text-gray-700">Welcome, ${userName.split(' ')[0]}!</span>
             `;
             
             const desktopLinks = `
@@ -179,7 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Pre-fill email if user is logged in
         if (isLoggedIn()) {
             const user = getUserSession();
-            contactEmailInput.value = user.email;
+            // Handle both old (email) and new (phone_number) field names
+            contactEmailInput.value = user.email || user.phone_number || '';
             contactEmailInput.readOnly = true; // Don't let them change it
         } else {
             contactEmailInput.value = '';
@@ -218,7 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let fullName = null;
 
             if (isLoggedIn()) {
-                fullName = getUserSession().fullName;
+                const user = getUserSession();
+                fullName = user.name || user.fullName || null;
             }
 
             try {

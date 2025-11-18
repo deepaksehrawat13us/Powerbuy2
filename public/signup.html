@@ -34,36 +34,60 @@
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h2>
-        <form id="signup-form" class="space-y-6">
+        <p class="text-sm text-gray-600 text-center mb-6">Enter your details to get started</p>
+        
+        <!-- Step 1: Phone Number Form -->
+        <form id="phone-form" class="space-y-6">
             <div>
                 <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
                 <input type="text" id="fullName" name="fullName" required
-                       class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" id="email" name="email" required
+                       placeholder="Enter your full name"
                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
             </div>
             <div>
                 <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
                 <input type="tel" id="phoneNumber" name="phoneNumber" required
+                       placeholder="9876543210"
+                       pattern="^[6-9]\d{9}$"
                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="password" name="password" required
-                       class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
-                <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" required
-                       class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <p class="text-xs text-gray-500 mt-1">Enter 10-digit mobile number (e.g., 9876543210)</p>
             </div>
             <div>
                 <button type="submit"
                         class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Sign Up
+                    Send OTP
+                </button>
+            </div>
+        </form>
+
+        <!-- Step 2: OTP Verification Form (Initially Hidden) -->
+        <form id="otp-form" class="space-y-6 hidden">
+            <div class="text-center mb-4">
+                <p class="text-sm text-gray-600">OTP sent to <strong id="displayPhone"></strong></p>
+            </div>
+            <div>
+                <label for="otp" class="block text-sm font-medium text-gray-700">Enter OTP</label>
+                <input type="text" id="otp" name="otp" required
+                       placeholder="123456"
+                       pattern="\d{6}"
+                       maxlength="6"
+                       class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-center text-2xl tracking-widest">
+                <p class="text-xs text-gray-500 mt-1">Enter the 6-digit OTP sent to your phone</p>
+            </div>
+            <div>
+                <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Verify & Sign Up
+                </button>
+            </div>
+            <div class="flex justify-between items-center">
+                <button type="button" id="backBtn"
+                        class="text-sm text-gray-600 hover:text-gray-800 underline">
+                    Change Phone Number
+                </button>
+                <button type="button" id="resendBtn" disabled
+                        class="text-sm text-indigo-600 hover:text-indigo-800 disabled:text-gray-400 disabled:cursor-not-allowed">
+                    Resend OTP (<span id="countdown">30</span>s)
                 </button>
             </div>
         </form>
@@ -78,16 +102,11 @@
     <!-- Message Box -->
     <div id="message-box"></div>
 
-    <!-- 
-      *** SCRIPT LOADING FIX ***
-      Added '?v=1.1' to force the browser to re-download the file.
-    -->
-    <script src="/session.js?v=1.1"></script>
+    <!-- Load configuration and session management -->
+    <script src="/config.js"></script>
+    <script src="/session.js?v=2.0"></script>
 
-    <!-- 
-      This inline script runs *after* session.js has been loaded, 
-      so all functions (like saveUserSession) will be defined.
-    -->
+    <!-- Signup form handler -->
     <script>
         // Function to show messages
         function showMessage(message, type) {
@@ -102,72 +121,209 @@
             }, 3000);
         }
 
-        document.getElementById('signup-form').addEventListener('submit', async function(event) {
+        // Country code configuration
+        const COUNTRY_CODE = '+91';
+        
+        // Store user data temporarily
+        let userData = {
+            fullName: '',
+            phoneNumber: ''
+        };
+        
+        let countdownInterval = null;
+        let countdownSeconds = 30;
+
+        // Step 1: Send OTP
+        document.getElementById('phone-form').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const fullName = document.getElementById('fullName').value;
-            const email = document.getElementById('email').value;
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
+            const fullName = document.getElementById('fullName').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
 
             // Client-side validation
-            if (password !== confirmPassword) {
-                showMessage('Passwords do not match.', 'error');
+            if (!fullName || fullName.length < 2) {
+                showMessage('Please enter a valid name.', 'error');
                 return;
             }
 
-            if (password.length < 6) {
-                showMessage('Password must be at least 6 characters long.', 'error');
+            // Validate phone number format (10 digits starting with 6-9)
+            const phonePattern = /^[6-9]\d{9}$/;
+            if (!phonePattern.test(phoneNumber)) {
+                showMessage('Please enter a valid 10-digit mobile number starting with 6-9.', 'error');
                 return;
             }
-            
-            // --- DEBUG STEP ---
-            // Let's check if the function exists RIGHT BEFORE we call it
-            if (typeof saveUserSession !== 'function') {
-                console.error('saveUserSession is NOT a function right before fetch!');
-                showMessage('A page error occurred. Please refresh and try again.', 'error');
-                return;
-            }
-            // --- END DEBUG STEP ---
+
+            // Store user data with country code prepended
+            userData.fullName = fullName;
+            userData.phoneNumber = COUNTRY_CODE + phoneNumber;
 
             try {
-                const response = await fetch('/signup', {
+                showMessage('Sending OTP...', 'success');
+                
+                // Send OTP for registration with user name (using phone with country code)
+                const response = await fetch(getApiUrl(API_CONFIG.endpoints.sendLoginOTP), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ 
-                        fullName: fullName, 
-                        email: email, 
-                        phoneNumber: phoneNumber,
-                        password: password,
-                        confirmPassword: confirmPassword 
+                        phone_number: userData.phoneNumber, // Already has country code
+                        name: fullName,
+                        action: 'register'
                     })
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
-                    // 1. Show success message
-                    showMessage('Sign up successful! Redirecting to home page...', 'success');
+                    // OTP sent successfully
+                    showMessage('OTP sent successfully! Check your phone.', 'success');
                     
-                    // 2. Save the user session (this will be defined)
-                    saveUserSession(result.user); 
+                    // Hide phone form, show OTP form
+                    document.getElementById('phone-form').classList.add('hidden');
+                    document.getElementById('otp-form').classList.remove('hidden');
+                    document.getElementById('displayPhone').textContent = phoneNumber;
                     
-                    // 3. Redirect to the home page
-                    setTimeout(() => {
-                        window.location.href = '/index.html'; // Redirect to home
-                    }, 2000);
+                    // Start countdown timer
+                    startCountdown();
+                    
+                    // Focus on OTP input
+                    setTimeout(() => document.getElementById('otp').focus(), 100);
                 } else {
-                    // Show error message from server
-                    showMessage(result.message || 'An error occurred.', 'error');
+                    showMessage(result.message || result.error || 'Failed to send OTP.', 'error');
                 }
             } catch (error) {
-                console.error('Error during sign up:', error);
+                console.error('Error sending OTP:', error);
                 showMessage('Failed to connect to the server.', 'error');
             }
         });
+
+        // Step 2: Verify OTP and Authenticate
+        document.getElementById('otp-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const otp = document.getElementById('otp').value.trim();
+
+            if (otp.length !== 6) {
+                showMessage('Please enter a valid 6-digit OTP.', 'error');
+                return;
+            }
+
+            try {
+                showMessage('Verifying OTP...', 'success');
+                
+                // Authenticate with OTP
+                const response = await fetch(getApiUrl(API_CONFIG.endpoints.authenticate), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        phone_number: userData.phoneNumber,
+                        otp: otp
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.data) {
+                    // Authentication successful
+                    showMessage('✅ Sign up successful! Redirecting...', 'success');
+                    
+                    // Save user session with tokens
+                    const user = result.data.user;
+                    const tokens = result.data.tokens;
+                    
+                    saveUserSession(user, tokens.access_token, tokens.refresh_token);
+                    
+                    // Clear countdown
+                    if (countdownInterval) {
+                        clearInterval(countdownInterval);
+                    }
+                    
+                    // Redirect to home page
+                    setTimeout(() => {
+                        window.location.href = '/index.html';
+                    }, 1500);
+                } else {
+                    showMessage(result.message || result.error || 'Invalid OTP. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Error verifying OTP:', error);
+                showMessage('Failed to connect to the server.', 'error');
+            }
+        });
+
+        // Back button - return to phone form
+        document.getElementById('backBtn').addEventListener('click', function() {
+            document.getElementById('phone-form').classList.remove('hidden');
+            document.getElementById('otp-form').classList.add('hidden');
+            document.getElementById('otp').value = '';
+            showMessage('', 'success');
+            
+            // Clear countdown
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        });
+
+        // Resend OTP button
+        document.getElementById('resendBtn').addEventListener('click', async function() {
+            try {
+                showMessage('Resending OTP...', 'success');
+                
+                const response = await fetch(getApiUrl(API_CONFIG.endpoints.sendLoginOTP), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        phone_number: userData.phoneNumber,
+                        name: userData.fullName,
+                        action: 'register'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('OTP resent successfully!', 'success');
+                    
+                    // Restart countdown
+                    startCountdown();
+                } else {
+                    showMessage(result.message || result.error || 'Failed to resend OTP.', 'error');
+                }
+            } catch (error) {
+                console.error('Error resending OTP:', error);
+                showMessage('Failed to connect to the server.', 'error');
+            }
+        });
+
+        // Countdown timer function
+        function startCountdown() {
+            countdownSeconds = 30;
+            const resendBtn = document.getElementById('resendBtn');
+            const countdownSpan = document.getElementById('countdown');
+            
+            resendBtn.disabled = true;
+            countdownSpan.textContent = countdownSeconds;
+            
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            countdownInterval = setInterval(() => {
+                countdownSeconds--;
+                countdownSpan.textContent = countdownSeconds;
+                
+                if (countdownSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Resend OTP';
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>

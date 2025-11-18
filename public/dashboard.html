@@ -87,7 +87,8 @@
     </footer>
 
     
-    <script src="/session.js?v=1.2"></script>
+    <script src="/config.js"></script>
+    <script src="/session.js?v=2.0"></script>
     
     <script>
         // *** NEW *** Modal variables
@@ -102,15 +103,15 @@
         let powerBuyElementToRemove = null;
         let currentUser = null; // Will be set on load
 
-        // *** NEW *** Function to open the confirmation modal
-        function openConfirmationModal(powerbuyId, buttonElement) {
-            powerBuyToLeave = powerbuyId;
+        // *** UPDATED *** Function to open the confirmation modal
+        function openConfirmationModal(participantId, poolName, buttonElement) {
+            powerBuyToLeave = participantId; // Store participant ID for API call
             // Get the parent div of the button to remove it on success
             powerBuyElementToRemove = buttonElement.closest('.powerbuy-item'); 
             
             // Update modal text
-            modalTitle.textContent = `Leave ${powerbuyId} PowerBuy?`;
-            modalMessage.textContent = `Are you sure you want to leave the ${powerbuyId} PowerBuy? This action cannot be undone.`;
+            modalTitle.textContent = `Leave ${poolName}?`;
+            modalMessage.textContent = `Are you sure you want to leave this PowerBuy pool? This action cannot be undone.`;
 
             // Show the modal
             confirmationModal.classList.remove('hidden');
@@ -134,15 +135,9 @@
             }
 
             try {
-                const response = await fetch('/leave-powerbuy', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: currentUser.email,
-                        powerbuyId: powerBuyToLeave
-                    })
+                // Use the new API endpoint to leave pool
+                const response = await apiCall(getApiUrl(`${API_CONFIG.endpoints.leavePool}/${powerBuyToLeave}/leave`), {
+                    method: 'DELETE'
                 });
 
                 const result = await response.json();
@@ -184,50 +179,68 @@
 
             // User is logged in, set the global currentUser variable
             currentUser = getUserSession(); 
-            if (!currentUser || !currentUser.email) {
+            if (!currentUser || (!currentUser.email && !currentUser.phone_number)) {
                 console.error('User session is invalid.');
                 window.location.href = '/signin.html';
                 return;
             }
 
-            const email = currentUser.email;
+            const email = currentUser.email || currentUser.phone_number;
             const loadingMessage = document.getElementById('loadingMessage');
             const noJoinsMessage = document.getElementById('noJoinsMessage');
             const listElement = document.getElementById('joinedPowerBuysList');
 
             try {
-                // Fetch dashboard data
-                const response = await fetch(`/dashboard-data?email=${encodeURIComponent(email)}`);
+                // Fetch user data from /users/me endpoint
+                const userResponse = await apiCall(getApiUrl(API_CONFIG.endpoints.getCurrentUser), {
+                    method: 'GET'
+                });
                 
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.statusText}`);
+                if (!userResponse.ok) {
+                    throw new Error(`Server error: ${userResponse.statusText}`);
                 }
 
-                const data = await response.json();
+                const userData = await userResponse.json();
+                const user = userData.data;
+                const userId = user.id;
 
-                // Populate user info
-                document.getElementById('dashFullName').textContent = data.fullName;
-                document.getElementById('dashEmail').textContent = data.email;
-                document.getElementById('dashPhone').textContent = data.phoneNumber || 'N/A';
+                // Populate user info (handle both old and new field names)
+                document.getElementById('dashFullName').textContent = user.name || user.fullName || 'N/A';
+                document.getElementById('dashEmail').textContent = user.email || 'N/A';
+                document.getElementById('dashPhone').textContent = user.phone_number || user.phoneNumber || 'N/A';
+
+                // Fetch user's participations
+                const participationsResponse = await apiCall(getApiUrl(`${API_CONFIG.endpoints.getUserParticipations}/${userId}`), {
+                    method: 'GET'
+                });
+                
+                if (!participationsResponse.ok) {
+                    throw new Error(`Failed to fetch participations`);
+                }
+
+                const participationsData = await participationsResponse.json();
+                const joinedPowerbuys = participationsData.data || [];
 
                 // Populate joined PowerBuys
-                if (data.joinedPowerbuys && data.joinedPowerbuys.length > 0) {
+                if (joinedPowerbuys && joinedPowerbuys.length > 0) {
                     loadingMessage.classList.add('hidden');
                     
-                    data.joinedPowerbuys.forEach(join => {
+                    joinedPowerbuys.forEach(participation => {
                         const div = document.createElement('div');
-                        // *** NEW *** Added 'powerbuy-item' class
                         div.className = 'powerbuy-item p-4 border rounded-lg flex justify-between items-center transition-all duration-300'; 
                         
-                        // *** UPDATED *** Added the Leave button
+                        // Format date
+                        const joinedDate = participation.joined_at ? new Date(participation.joined_at).toLocaleDateString() : 'N/A';
+                        
                         div.innerHTML = `
                             <div>
-                                <h3 class="text-lg font-semibold">${join.powerbuyId}</h3>
-                                <p class="text-sm text-gray-500">Joined on: ${new Date(join.joinedAt).toLocaleDateString()}</p>
+                                <h3 class="text-lg font-semibold">${participation.brand_name ? participation.brand_name + ' - ' : ''}${participation.pool_name || 'Unnamed Pool'}</h3>
+                                <p class="text-sm text-gray-500">Joined on: ${joinedDate}</p>
+                                <p class="text-sm text-gray-600">Status: ${participation.status || 'active'}</p>
                             </div>
                             <div class="flex items-center gap-4">
                                 <span class="text-sm font-medium text-green-600 bg-green-100 px-3 py-1 rounded-full">Joined</span>
-                                <button onclick="openConfirmationModal('${join.powerbuyId}', this)" class="text-sm font-medium text-red-600 hover:text-red-800">
+                                <button onclick="openConfirmationModal('${participation.id}', '${participation.pool_name || 'this pool'}', this)" class="text-sm font-medium text-red-600 hover:text-red-800">
                                     Leave
                                 </button>
                             </div>

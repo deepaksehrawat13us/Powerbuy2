@@ -8,9 +8,34 @@
   <style> body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; } </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
-  <header class="sticky top-0 bg-white border-b shadow-sm">
+  <!-- UNIVERSAL HEADER -->
+  <header class="sticky top-0 bg-white border-b shadow-sm z-10">
     <div class="max-w-7xl mx-auto flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
-      <a href="index.html" class="text-2xl font-bold">PowerBuy</a>
+      
+      <!-- Logo -->
+      <div>
+        <a href="index.html" class="text-2xl font-bold text-black leading-none">PowerBuy</a>
+        <div class="text-xs font-semibold text-blue-600">Ab customer ki chalegi</div>
+      </div>
+      
+      <!-- Desktop Navigation -->
+      <nav id="desktopNav" class="hidden md:flex space-x-6 text-sm font-semibold items-center">
+        <a href="#contact" class="hover:text-gray-500">Contact Us</a>
+        <a href="powerbuys.html" class="hover:text-gray-500">PowerBuys</a>
+        <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
+        <a href="signin.html" class="hover:text-gray-500">Sign In</a>
+        <a href="signup.html" class="hover:text-gray-500">Sign Up</a>
+      </nav>
+      <button id="menuBtn" class="md:hidden border px-3 py-2 rounded-lg text-sm">☰</button>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
+      <a href="#contact" class="block px-4 py-2 hover:bg-gray-100">Contact Us</a>
+      <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">PowerBuys</a>
+      <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My PowerBuys</a>
+      <a href="signin.html" class="block px-4 py-2 hover:bg-gray-100">Sign In</a>
+      <a href="signup.html" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
     </div>
   </header>
 
@@ -33,19 +58,55 @@
     © <span id="year"></span> PowerBuy. All Rights Reserved.
   </footer>
 
+  <!-- Load configuration and session management -->
+  <script src="/config.js"></script>
+  <script src="/session.js?v=2.0"></script>
+
   <script>
+    // Debug: Check localStorage immediately when page loads
+    console.log('=== JOIN PAGE INITIAL CHECK ===');
+    console.log('All localStorage keys:', Object.keys(localStorage));
+    console.log('localStorage.powerbuyUser:', localStorage.getItem('powerbuyUser'));
+    console.log('localStorage.accessToken:', localStorage.getItem('accessToken'));
+    console.log('localStorage.refreshToken:', localStorage.getItem('refreshToken'));
+    console.log('localStorage.userId:', localStorage.getItem('userId'));
+    
+    // Check if localStorage is being cleared
+    if (!localStorage.getItem('powerbuyUser')) {
+      console.error('⚠️ WARNING: User session not found in localStorage!');
+      console.error('This means either:');
+      console.error('1. User was never logged in');
+      console.error('2. Session was cleared somewhere');
+      console.error('3. Using different domain/protocol');
+    }
+    
     document.getElementById("year").textContent = new Date().getFullYear();
 
     const params = new URLSearchParams(window.location.search);
+    const poolId = params.get("poolId") || params.get("pool_id") || "";
     const brand = params.get("brand") || "";
     const type  = params.get("type")  || "";
 
-    // Gate: must be signed in; otherwise go to auth with redirect back here
-    const user = JSON.parse(localStorage.getItem("powerbuyUser"));
-    if (!user) {
+    console.log('=== JOIN PAGE LOADED ===');
+    console.log('Params:', { poolId, brand, type });
+    console.log('typeof isLoggedIn:', typeof isLoggedIn);
+    console.log('typeof getUserSession:', typeof getUserSession);
+    
+    // Gate: must be signed in; otherwise go to signin with redirect back here
+    const loggedIn = isLoggedIn();
+    console.log('isLoggedIn():', loggedIn);
+    console.log('localStorage.powerbuyUser:', localStorage.getItem('powerbuyUser'));
+    console.log('localStorage.accessToken:', localStorage.getItem('accessToken'));
+    
+    if (!loggedIn) {
+      console.log('❌ Not logged in on join.html, redirecting to signin...');
       const redirect = encodeURIComponent(window.location.pathname + window.location.search);
-      window.location.href = `auth.html?redirect=${redirect}`;
-    }
+      window.location.href = `signin.html?redirect=${redirect}`;
+    } else {
+      // User is logged in, continue with page logic
+      console.log('✅ User is logged in on join.html');
+      const user = getUserSession();
+      console.log('User session:', user);
 
     const context = document.getElementById("context");
     context.innerHTML = `
@@ -55,51 +116,106 @@
       </div>
     `;
 
-    // Simple spec catalog (you can expand freely)
-    const catalog = {
-      car: {
-        Nissan: {
-          Model: ["Altima", "Rogue", "Sentra", "Kicks"],
-          Color: ["Black", "White", "Silver", "Blue"],
-          Trim: ["Base", "SV", "SL", "Platinum"],
-          Transmission: ["Automatic", "Manual"]
-        },
-        Toyota: {
-          Model: ["Corolla", "Camry", "RAV4", "Highlander"],
-          Color: ["Black", "White", "Silver", "Red"],
-          Trim: ["LE", "SE", "XLE", "XSE"],
-          Transmission: ["Automatic", "Manual"]
-        },
-        Hyundai: {
-          Model: ["Elantra", "Tucson", "Santa Fe", "Kona"],
-          Color: ["Black", "White", "Gray", "Blue"],
-          Trim: ["Essential", "Preferred", "Ultimate"],
-          Transmission: ["Automatic", "Manual"]
-        }
-      },
-      phone: {
-        Apple: {
-          Model: ["iPhone 15", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15 Pro Max"],
-          Storage: ["128GB", "256GB", "512GB", "1TB"],
-          Color: ["Black", "White", "Blue", "Natural Titanium"],
-          Carrier: ["Unlocked", "Bell", "Rogers", "Telus"]
-        },
-        Samsung: {
-          Model: ["Galaxy S24", "S24+", "S24 Ultra", "Z Flip 6"],
-          Storage: ["128GB", "256GB", "512GB"],
-          Color: ["Black", "Gray", "Violet", "Yellow"],
-          Carrier: ["Unlocked", "Bell", "Rogers", "Telus"]
-        },
-        OnePlus: {
-          Model: ["OnePlus 12", "OnePlus 12R", "Nord CE4"],
-          Storage: ["128GB", "256GB"],
-          Color: ["Black", "Green", "Blue"],
-          Carrier: ["Unlocked", "Bell", "Rogers", "Telus"]
-        }
-      }
-    };
+    // Catalog will be loaded dynamically from API
+    let catalog = {};
 
     const specFields = document.getElementById("specFields");
+
+    // Function to load products from API and build catalog
+    async function loadProductCatalog() {
+      try {
+        console.log('Loading products for:', { type, brand });
+        
+        // Show loading message
+        specFields.innerHTML = '<p class="text-gray-600 col-span-full">Loading products...</p>';
+        
+        if (type === 'phone') {
+          // Fetch all phones
+          const response = await fetch(getApiUrl(API_CONFIG.endpoints.phones));
+          const data = await response.json();
+          
+          if (data.success && data.data) {
+            // Group phones by brand
+            const phonesByBrand = {};
+            
+            data.data.forEach(phone => {
+              const brandName = phone.brand_name;
+              if (!phonesByBrand[brandName]) {
+                phonesByBrand[brandName] = {
+                  Model: new Set(),
+                  Storage: new Set(),
+                  RAM: new Set(),
+                  Color: new Set()
+                };
+              }
+              
+              // Add unique values
+              if (phone.name) phonesByBrand[brandName].Model.add(phone.name);
+              if (phone.storage) phonesByBrand[brandName].Storage.add(`${phone.storage}GB`);
+              if (phone.ram) phonesByBrand[brandName].RAM.add(`${phone.ram}GB`);
+            });
+            
+            // Convert Sets to sorted Arrays and add common options
+            Object.keys(phonesByBrand).forEach(brandName => {
+              phonesByBrand[brandName].Model = Array.from(phonesByBrand[brandName].Model).sort();
+              phonesByBrand[brandName].Storage = Array.from(phonesByBrand[brandName].Storage).sort();
+              phonesByBrand[brandName].RAM = Array.from(phonesByBrand[brandName].RAM).sort();
+              phonesByBrand[brandName].Color = ["Black", "White", "Blue", "Silver", "Gold", "Red", "Green"];
+            });
+            
+            catalog.phone = phonesByBrand;
+            console.log('Phone catalog loaded:', catalog.phone);
+          }
+        } else if (type === 'car') {
+          // Fetch all cars
+          const response = await fetch(getApiUrl(API_CONFIG.endpoints.cars));
+          const data = await response.json();
+          
+          if (data.success && data.data) {
+            // Group cars by brand
+            const carsByBrand = {};
+            
+            data.data.forEach(car => {
+              const brandName = car.brand_name;
+              if (!carsByBrand[brandName]) {
+                carsByBrand[brandName] = {
+                  Model: new Set(),
+                  Variant: new Set(),
+                  Transmission: new Set(),
+                  FuelType: new Set(),
+                  Color: new Set()
+                };
+              }
+              
+              // Add unique values
+              if (car.name) carsByBrand[brandName].Model.add(car.name);
+              if (car.model) carsByBrand[brandName].Variant.add(car.model);
+              if (car.transmission) carsByBrand[brandName].Transmission.add(car.transmission.charAt(0).toUpperCase() + car.transmission.slice(1));
+              if (car.fuel_type) carsByBrand[brandName].FuelType.add(car.fuel_type.charAt(0).toUpperCase() + car.fuel_type.slice(1));
+            });
+            
+            // Convert Sets to sorted Arrays and add common options
+            Object.keys(carsByBrand).forEach(brandName => {
+              carsByBrand[brandName].Model = Array.from(carsByBrand[brandName].Model).sort();
+              carsByBrand[brandName].Variant = Array.from(carsByBrand[brandName].Variant).sort();
+              carsByBrand[brandName].Transmission = Array.from(carsByBrand[brandName].Transmission).sort();
+              carsByBrand[brandName].FuelType = Array.from(carsByBrand[brandName].FuelType).sort();
+              carsByBrand[brandName].Color = ["Black", "White", "Silver", "Red", "Blue", "Gray"];
+            });
+            
+            catalog.car = carsByBrand;
+            console.log('Car catalog loaded:', catalog.car);
+          }
+        }
+        
+        // Render specs after catalog is loaded
+        renderSpecs();
+      } catch (error) {
+        console.error('Error loading product catalog:', error);
+        // Render specs anyway (will show "no preset specs" message)
+        renderSpecs();
+      }
+    }
 
     function buildSelect(label, options, name) {
       const id = "field_" + name.replace(/\s+/g, "_").toLowerCase();
@@ -128,7 +244,9 @@
       });
       specFields.innerHTML = pieces.join("");
     }
-    renderSpecs();
+    
+    // Load product catalog from API and render specs
+    loadProductCatalog();
 
     const form = document.getElementById("joinForm");
     const msg = document.getElementById("msg");
@@ -147,35 +265,102 @@
       });
 
       try {
-        const res = await fetch("/api/join-powerbuy", {
+        // Get user ID from localStorage (updated session)
+        const userSession = getUserSession();
+        const userId = userSession?.id || localStorage.getItem('userId');
+        
+        console.log('=== JOINING POOL ===');
+        console.log('Pool ID:', poolId);
+        console.log('User ID:', userId);
+        console.log('User Session:', userSession);
+        
+        if (!poolId) {
+          msg.textContent = "❌ Pool ID is required to join.";
+          msg.className = "text-sm mt-4 text-red-600";
+          return;
+        }
+
+        if (!userId) {
+          msg.textContent = "❌ User session not found. Please login again.";
+          msg.className = "text-sm mt-4 text-red-600";
+          return;
+        }
+
+        // TODO: Create product from specs or let user select product
+        // For now, using product_id: 1 as a placeholder
+        const requestBody = {
+          pool_id: parseInt(poolId),
+          user_id: parseInt(userId),
+          product_id: 1  // TEMP: This should be based on specs collected
+        };
+        
+        const apiUrl = getApiUrl(API_CONFIG.endpoints.joinPool);
+        console.log('API URL:', apiUrl);
+        console.log('Collected specs:', specs);
+        console.log('Request body:', requestBody);
+
+        console.log('🔵 About to call apiCall with URL:', apiUrl);
+        console.log('🔵 Request options:', {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            brand,
-            type,
-            specs,
-            notes: formData.notes || ""
-          })
+          body: JSON.stringify(requestBody)
         });
+        
+        const res = await apiCall(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody)
+        });
+        
+        console.log('✅ Response received!');
+        console.log('Response status:', res.status);
+        console.log('Response headers:', res.headers);
+        console.log('Response ok:', res.ok);
+        
+        const data = await res.json();
+        console.log('Response data:', data);
+        
         if (res.ok) {
-          msg.textContent = "✅ You’ve been added to this Powerbuy! We’ll notify you with the best deal.";
+          msg.textContent = "✅ You've been added to this PowerBuy! We'll notify you with the best deal.";
           msg.className = "text-sm mt-4 text-green-600";
           form.reset();
+          
+          // Redirect to dashboard after 2 seconds
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 2000);
         } else {
-          const err = await res.json().catch(() => ({}));
-          msg.textContent = "❌ " + (err.error || "Unable to join right now.");
+          msg.textContent = "❌ " + (data.message || data.error || "Unable to join right now.");
           msg.className = "text-sm mt-4 text-red-600";
         }
-      } catch {
-        msg.textContent = "❌ Network error.";
+      } catch (error) {
+        console.error('❌❌❌ ERROR CAUGHT IN JOIN FORM HANDLER ❌❌❌');
+        console.error('Error object:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('Error name:', error.name);
+        
+        msg.textContent = "❌ Network error: " + error.message;
         msg.className = "text-sm mt-4 text-red-600";
+        
+        // DON'T throw - keep the page visible for debugging
+        console.error('🚫 Error caught but not re-thrown - page stays visible for debugging');
       }
     });
+    
+  } // End of else block (user is logged in)
+  
+  // Mobile menu toggle
+  const menuBtn = document.getElementById('menuBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  
+  if (menuBtn && mobileMenu) {
+    menuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  }
   </script>
 
-  <script src="session.js"></script>
+  <script src="/session.js?v=2.0"></script>
 </body>
 </html>

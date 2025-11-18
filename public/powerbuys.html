@@ -100,39 +100,16 @@
     © <span id="year"></span> PowerBuy. All Rights Reserved.
   </footer>
 
-  <!-- 
-    *** SCRIPT SECTION UPDATED ***
-    1. session.js is loaded FIRST to make its functions available.
-    2. Main script is updated to use session.js functions.
-  -->
-  <script src="/session.js?v=1.2"></script>
-  
-  <script>
-    // This script now runs *after* session.js has been loaded and executed
-    
-    // --- Page setup logic (THIS IS HANDLED BY session.js, but we keep year and menu) ---
-    // Note: session.js already handles the mobile menu toggle and year
-    // We just need to handle the page-specific logic
+  <!-- Load configuration and session management -->
+  <script src="/config.js"></script>
+  <script src="/session.js?v=2.0"></script>
 
-    // --- PowerBuys page-specific logic ---
-    
+  <script>
     // Get user from session.js function
     let user = getUserSession(); 
 
-    // *** UPDATED *** Added new brands popular in India
-    const powerbuys = [
-      { brand: "Apple", type: "phone", joinBy: "Nov 25, 2025", participants: 28 },
-      { brand: "Samsung", type: "phone", joinBy: "Dec 5, 2025", participants: 19 },
-      { brand: "Xiaomi", type: "phone", joinBy: "Dec 1, 2025", participants: 0 },
-      { brand: "OnePlus", type: "phone", joinBy: "Nov 28, 2025", participants: 22 },
-      { brand: "Vivo", type: "phone", joinBy: "Dec 1, 2025", participants: 0 },
-      { brand: "Maruti Suzuki", type: "car", joinBy: "Dec 15, 2025", participants: 0 },
-      { brand: "Hyundai", type: "car", joinBy: "Dec 3, 2025", participants: 11 },
-      { brand: "Tata", type: "car", joinBy: "Dec 15, 2025", participants: 0 },
-      { brand: "Mahindra", type: "car", joinBy: "Dec 15, 2025", participants: 0 },
-      { brand: "Toyota", type: "car", joinBy: "Dec 10, 2025", participants: 9 },
-      { brand: "Nissan", type: "car", joinBy: "Nov 30, 2025", participants: 14 }
-    ];
+    // PowerBuys data - will be fetched from API
+    let powerbuys = [];
 
     const listContainer = document.getElementById("powerbuyList");
     const searchInput = document.getElementById("searchInput");
@@ -144,23 +121,71 @@
     const joinType = document.getElementById("joinType");
     const dynamicSpecs = document.getElementById("dynamicSpecs");
 
+    // Fetch active pools from API
+    async function fetchActivePools() {
+      try {
+        listContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">Loading active PowerBuys...</p>';
+        
+        const response = await fetch(getApiUrl(API_CONFIG.endpoints.getActivePools));
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch pools');
+        }
+
+        const data = await response.json();
+        
+        // Log the API response
+        console.log('Active Pools API Response:', data);
+        console.log(`Fetched ${data.data?.length || 0} active pools`);
+        
+        powerbuys = (data.data || []).map(pool => ({
+          id: pool.id,
+          poolId: pool.id,
+          brand: pool.brand_name || 'Unknown Brand',
+          type: pool.category_slug || 'other',
+          categoryName: pool.category_name || '',
+          joinBy: pool.closing_date ? new Date(pool.closing_date).toLocaleDateString() : 'TBD',
+          timeRemaining: pool.time_remaining || '',
+          participants: pool.current_participants || 0,
+          maxParticipants: pool.max_participants || 0,
+          status: pool.status || 'active',
+          brandLogo: pool.brand_logo || ''
+        }));
+        
+        console.log('Mapped powerbuys:', powerbuys);
+        
+        renderList();
+      } catch (error) {
+        console.error('Error fetching pools:', error);
+        listContainer.innerHTML = '<p class="text-red-500 text-center col-span-full">Failed to load PowerBuys. Please try again later.</p>';
+      }
+    }
+
     function renderList() {
       const search = searchInput.value.toLowerCase();
-      const category = categoryFilter.value;
-      const filtered = powerbuys.filter(pb =>
-        pb.brand.toLowerCase().includes(search) &&
-        (category === "all" || pb.type === category)
-      );
+      const category = categoryFilter.value.toLowerCase();
+      
+      console.log('Filtering - Category:', category, 'Search:', search);
+      
+      const filtered = powerbuys.filter(pb => {
+        const matchesSearch = pb.brand.toLowerCase().includes(search);
+        const matchesCategory = category === "all" || pb.type.toLowerCase() === category;
+        console.log(`Pool: ${pb.brand}, Type: ${pb.type}, Matches: ${matchesSearch && matchesCategory}`);
+        return matchesSearch && matchesCategory;
+      });
+
+      console.log('Filtered results:', filtered.length);
 
       listContainer.innerHTML = filtered.map(pb => `
         <div class="bg-white rounded-2xl border shadow-sm p-6 flex flex-col justify-between">
           <div>
             <h3 class="text-xl font-semibold">${pb.brand}</h3>
-            <p class="text-gray-600 mt-1 capitalize">Category: ${pb.type}</p>
-            <p class="text-gray-600 mt-1">Join by: <strong>${pb.joinBy}</strong></p>
-            <p class="text-gray-600 mt-1">Participants: <strong>${pb.participants}</strong></p>
+            <p class="text-gray-600 mt-1 capitalize">Category: ${pb.categoryName || pb.type}</p>
+            <p class="text-gray-600 mt-1">Closing Date: <strong>${pb.joinBy}</strong></p>
+            ${pb.timeRemaining ? `<p class="text-gray-600 mt-1">Time Remaining: <strong class="text-indigo-600">${pb.timeRemaining}</strong></p>` : ''}
+            ${pb.participants || pb.maxParticipants ? `<p class="text-gray-600 mt-1">Participants: <strong>${pb.participants}${pb.maxParticipants ? '/' + pb.maxParticipants : ''}</strong></p>` : ''}
           </div>
-          <button onclick="openJoinForm('${pb.brand}','${pb.type}')"
+          <button onclick="openJoinForm('${pb.poolId}', '${pb.brand}','${pb.type}')"
             class="mt-5 bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800">
             Join PowerBuy
           </button>
@@ -171,15 +196,45 @@
         listContainer.innerHTML = `<p class="text-gray-500 text-center col-span-full">No PowerBuys found.</p>`;
     }
 
+    // Initialize: Fetch pools on page load
+    fetchActivePools();
+
     // *** UPDATED *** This function is now much more comprehensive
-    function openJoinForm(brand, type) {
-      // Use isLoggedIn() from session.js
-      if (!isLoggedIn()) { 
-        // We can't use alert, so let's use the modal for a message, or just redirect
-        // For simplicity, we'll redirect.
+    function openJoinForm(poolId, brand, type) {
+      // Debug: Check if functions are available
+      console.log('=== JOIN BUTTON CLICKED ===');
+      console.log('poolId:', poolId, 'brand:', brand, 'type:', type);
+      console.log('typeof isLoggedIn:', typeof isLoggedIn);
+      console.log('typeof getUserSession:', typeof getUserSession);
+      
+      // Check if session functions are available
+      if (typeof isLoggedIn !== 'function' || typeof getUserSession !== 'function') {
+        console.error('Session functions not loaded! Redirecting to signin...');
         window.location.href = "signin.html";
         return;
       }
+      
+      const userSession = getUserSession();
+      const loggedIn = isLoggedIn();
+      
+      console.log('isLoggedIn():', loggedIn);
+      console.log('getUserSession():', userSession);
+      console.log('localStorage.powerbuyUser:', localStorage.getItem('powerbuyUser'));
+      console.log('localStorage.accessToken:', localStorage.getItem('accessToken'));
+      
+      // Use isLoggedIn() from session.js
+      if (!loggedIn) { 
+        console.log('❌ User not logged in, redirecting to signin page');
+        window.location.href = "signin.html";
+        return;
+      }
+      
+      console.log('✅ User is logged in, redirecting to join page');
+      // Redirect to join.html with poolId parameter
+      window.location.href = `join.html?poolId=${poolId}&brand=${encodeURIComponent(brand)}&type=${encodeURIComponent(type)}`;
+      return;
+      
+      // Note: The code below is kept for backward compatibility but won't be reached
       // Re-fetch user in case it's needed (it is, for the form submission)
       user = getUserSession(); 
       
