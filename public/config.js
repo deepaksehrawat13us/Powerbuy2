@@ -5,7 +5,7 @@
 
 const API_CONFIG = {
     // Base URL for the PowerBuy API
-    baseURL: 'https://anazmandi.com/api/v1',
+    baseURL: 'https://backend.powerbuy.in/api/v1',
     
     // Endpoints
     endpoints: {
