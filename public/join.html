@@ -157,7 +157,15 @@
             
             // Convert Sets to sorted Arrays and add common options
             Object.keys(phonesByBrand).forEach(brandName => {
-              phonesByBrand[brandName].Model = Array.from(phonesByBrand[brandName].Model).sort();
+              // Sort Model array and move "Other" to the end if it exists
+              let models = Array.from(phonesByBrand[brandName].Model).sort();
+              const otherIndex = models.findIndex(m => m.toLowerCase() === 'other');
+              if (otherIndex !== -1) {
+                models.splice(otherIndex, 1);
+                models.push('Other');
+              }
+              phonesByBrand[brandName].Model = models;
+              
               phonesByBrand[brandName].Storage = Array.from(phonesByBrand[brandName].Storage).sort();
               phonesByBrand[brandName].RAM = Array.from(phonesByBrand[brandName].RAM).sort();
               phonesByBrand[brandName].Color = ["Black", "White", "Blue", "Silver", "Gold", "Red", "Green"];
@@ -196,8 +204,24 @@
             
             // Convert Sets to sorted Arrays and add common options
             Object.keys(carsByBrand).forEach(brandName => {
-              carsByBrand[brandName].Model = Array.from(carsByBrand[brandName].Model).sort();
-              carsByBrand[brandName].Variant = Array.from(carsByBrand[brandName].Variant).sort();
+              // Sort Model array and move "Other" to the end if it exists
+              let models = Array.from(carsByBrand[brandName].Model).sort();
+              const otherIndex = models.findIndex(m => m.toLowerCase() === 'other');
+              if (otherIndex !== -1) {
+                models.splice(otherIndex, 1);
+                models.push('Other');
+              }
+              carsByBrand[brandName].Model = models;
+              
+              // Sort Variant array and move "Other" to the end if it exists
+              let variants = Array.from(carsByBrand[brandName].Variant).sort();
+              const otherVariantIndex = variants.findIndex(v => v.toLowerCase() === 'other');
+              if (otherVariantIndex !== -1) {
+                variants.splice(otherVariantIndex, 1);
+                variants.push('Other');
+              }
+              carsByBrand[brandName].Variant = variants;
+              
               carsByBrand[brandName].Transmission = Array.from(carsByBrand[brandName].Transmission).sort();
               carsByBrand[brandName].FuelType = Array.from(carsByBrand[brandName].FuelType).sort();
               carsByBrand[brandName].Color = ["Black", "White", "Silver", "Red", "Blue", "Gray"];
