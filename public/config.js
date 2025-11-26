@@ -39,7 +39,10 @@ const API_CONFIG = {
         brands: '/brands',
         categories: '/categories',
         phones: '/phones',
-        cars: '/cars'
+        cars: '/cars',
+        
+        // Contact
+        contact: '/contact-us'
     }
 };
 

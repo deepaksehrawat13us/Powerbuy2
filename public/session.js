@@ -100,8 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <form id="contactForm">
                     <div class="space-y-4">
                         <div>
-                            <label for="contactEmail" class="block text-sm font-medium text-gray-700">Your Email</label>
-                            <input type="email" id="contactEmail" name="email" required
+                            <label for="contactPhone" class="block text-sm font-medium text-gray-700">Your Phone Number</label>
+                            <input type="tel" id="contactPhone" name="phone" required pattern="[6-9][0-9]{9}"
+                                   placeholder="9876543210"
                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
                         <div>
@@ -155,16 +156,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const desktopLinks = `
                 <a href="#contact" id="contactLinkDynamic" class="hover:text-gray-500">Contact Us</a>
-                <a href="powerbuys.html" class="hover:text-gray-500">PowerBuys</a>
-                <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
+                <a href="powerbuys.html" class="hover:text-gray-500">Pools</a>
+                <a href="dashboard.html" class="hover:text-gray-500">My Pools</a>
                 ${welcomeMessage}
                 <a href="#" id="signOutBtn" class="text-red-600 hover:text-red-800">Sign Out</a>
             `;
 
             const mobileLinks = `
                 <a href="#contact" id="mobileContactLinkDynamic" class="block px-4 py-2 hover:bg-gray-100">Contact Us</a>
-                <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">PowerBuys</a>
-                <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My PowerBuys</a>
+                <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100">Pools</a>
+                <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My Pools</a>
                 <a href="#" id="mobileSignOutBtn" class="block px-4 py-2 text-red-600 hover:bg-gray-1Of-type(1)0">Sign Out</a>
             `;
 
@@ -214,22 +215,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactModal = document.getElementById('contactModal');
     const contactForm = document.getElementById('contactForm');
     const contactCancel = document.getElementById('contactCancel');
-    const contactEmailInput = document.getElementById('contactEmail');
+    const contactPhoneInput = document.getElementById('contactPhone');
     const successToast = document.getElementById('successToast');
 
     // 2. DEFINE functions that use those variables
     // Function to open the modal
     function openContactModal(event) {
         event.preventDefault();
-        // Pre-fill email if user is logged in
+        // Pre-fill phone if user is logged in
         if (isLoggedIn()) {
             const user = getUserSession();
-            // Handle both old (email) and new (phone_number) field names
-            contactEmailInput.value = user.email || user.phone_number || '';
-            contactEmailInput.readOnly = true; // Don't let them change it
+            // Extract phone without country code if it exists
+            let phone = user.phone_number || '';
+            if (phone.startsWith('+91')) {
+                phone = phone.substring(3);
+            }
+            contactPhoneInput.value = phone;
+            contactPhoneInput.readOnly = true; // Don't let them change it
         } else {
-            contactEmailInput.value = '';
-            contactEmailInput.readOnly = false;
+            contactPhoneInput.value = '';
+            contactPhoneInput.readOnly = false;
         }
         contactModal.classList.remove('hidden');
         contactModal.classList.add('flex');
@@ -259,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (contactForm) {
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = contactEmailInput.value;
+            const phone = contactPhoneInput.value;
             const message = document.getElementById('contactMessage').value;
             let fullName = null;
 
@@ -268,14 +273,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 fullName = user.name || user.fullName || null;
             }
 
+            // Add country code if not present
+            const phoneWithCountryCode = phone.startsWith('+91') ? phone : `+91${phone}`;
+
             try {
-                const response = await fetch('/contact', {
+                const response = await apiCall('/contact-us', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, message, fullName })
+                    body: JSON.stringify({ 
+                        phone_number: phoneWithCountryCode, 
+                        message, 
+                        name: fullName 
+                    })
                 });
 
-                if (response.ok) {
+                if (response.ok || response.success) {
                     closeContactModal();
                     contactForm.reset(); // Clear the form
                     // Show success toast
@@ -284,8 +296,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         successToast.classList.add('hidden');
                     }, 3000); // Hide after 3 seconds
                 } else {
-                    const error = await response.json();
-                    alert(`Error: ${error.message}`);
+                    const error = response.error || response.message || 'Unknown error';
+                    alert(`Error: ${error}`);
                 }
             } catch (err) {
                 console.error('Contact form submission error:', err);

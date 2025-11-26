@@ -24,8 +24,8 @@
       <!-- *** ID ADDED *** -->
       <nav id="desktopNav" class="hidden md:flex space-x-6 text-sm font-semibold items-center">
         <a href="#contact" class="hover:text-gray-500">Contact Us</a>
-        <a href="powerbuys.html" class="text-indigo-600 font-bold">PowerBuys</a>
-        <a href="dashboard.html" class="hover:text-gray-500">My PowerBuys</a>
+        <a href="powerbuys.html" class="text-indigo-600 font-bold">Pools</a>
+        <a href="dashboard.html" class="hover:text-gray-500">My Pools</a>
         <a href="signin.html" class="hover:text-gray-500">Sign In</a>
         <a href="signup.html" class="hover:text-gray-500">Sign Up</a>
       </nav>
@@ -35,8 +35,8 @@
     <!-- *** ID ALREADY EXISTS *** -->
     <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
       <a href="#contact" class="block px-4 py-2 hover:bg-gray-100">Contact Us</a>
-      <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100 font-bold text-indigo-600">PowerBuys</a>
-      <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My PowerBuys</a>
+      <a href="powerbuys.html" class="block px-4 py-2 hover:bg-gray-100 font-bold text-indigo-600">Pools</a>
+      <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-100">My Pools</a>
       <a href="signin.html" class="block px-4 py-2 hover:bg-gray-100">Sign In</a>
       <a href="signup.html" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
     </div>
@@ -44,8 +44,8 @@
 
   <!-- MAIN SECTION -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <h2 class="text-3xl font-extrabold text-center">Active PowerBuys</h2>
-    <p class="text-gray-600 text-center mt-2">Search and join the group that matches your brand or product interest.</p>
+    <h2 class="text-3xl font-extrabold text-center">Active Pools</h2>
+    <p class="text-gray-600 text-center mt-2">Once a pool closes, we negotiate bulk pricing and call all participants with the lowest price.</p>
 
     <!-- Filters -->
     <div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -65,7 +65,7 @@
   <!-- JOIN FORM MODAL -->
   <div id="joinModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative overflow-y-auto" style="max-height: 90vh;">
-      <h3 class="text-2xl font-bold mb-4 text-center">Join PowerBuy</h3>
+      <h3 class="text-2xl font-bold mb-4 text-center">Join Pool</h3>
       <form id="joinForm" class="space-y-4">
         <input type="hidden" id="joinBrand" name="brand" />
         <input type="hidden" id="joinType" name="type" />
@@ -124,7 +124,7 @@
     // Fetch active pools from API
     async function fetchActivePools() {
       try {
-        listContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">Loading active PowerBuys...</p>';
+        listContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">Loading active Pools...</p>';
         
         const response = await fetch(getApiUrl(API_CONFIG.endpoints.getActivePools));
         
@@ -152,12 +152,12 @@
           brandLogo: pool.brand_logo || ''
         }));
         
-        console.log('Mapped powerbuys:', powerbuys);
+        console.log('Mapped pools:', powerbuys);
         
         renderList();
       } catch (error) {
         console.error('Error fetching pools:', error);
-        listContainer.innerHTML = '<p class="text-red-500 text-center col-span-full">Failed to load PowerBuys. Please try again later.</p>';
+        listContainer.innerHTML = '<p class="text-red-500 text-center col-span-full">Failed to load Pools. Please try again later.</p>';
       }
     }
 
@@ -187,7 +187,7 @@
           </div>
           <button onclick="openJoinForm('${pb.poolId}', '${pb.brand}','${pb.type}')"
             class="mt-5 bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800">
-            Join PowerBuy
+            Join Pool
           </button>
         </div>
       `).join("");
